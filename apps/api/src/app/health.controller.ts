@@ -1,0 +1,25 @@
+import { Controller, Get } from '@nestjs/common';
+import { InjectConnection } from '@nestjs/mongoose';
+import type { Connection } from 'mongoose';
+
+@Controller('health')
+export class HealthController {
+  constructor(
+    @InjectConnection()
+    private readonly connection: Connection,
+  ) {}
+
+  @Get()
+  checkHealth() {
+    const mongodbConnected = this.connection.readyState === 1;
+
+    return {
+      status: mongodbConnected ? 'ok' : 'degraded',
+      services: {
+        api: 'up',
+        mongodb: mongodbConnected ? 'up' : 'down',
+      },
+      timestamp: new Date().toISOString(),
+    };
+  }
+}
