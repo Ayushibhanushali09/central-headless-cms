@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -19,6 +20,8 @@ import { HealthController } from './health.controller';
         uri: configService.getOrThrow<string>('MONGODB_URI'),
       }),
     }),
+
+    RedisModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
