@@ -6,6 +6,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { HealthController } from './health.controller';
 import { RedisModule } from './redis/redis.module';
+import { PagesModule } from './pages/pages.module';
+import { ProjectsModule } from './projects/projects.module';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { RedisModule } from './redis/redis.module';
     }),
 
     RedisModule,
+    ProjectsModule,
+    PagesModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
