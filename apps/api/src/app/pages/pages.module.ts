@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
 import { ProjectsModule } from '../projects/projects.module';
+import { PagesController } from './pages.controller';
+import { PagesService } from './pages.service';
 import {
   PageData,
   PageDataSchema,
@@ -14,7 +16,6 @@ import {
 @Module({
   imports: [
     ProjectsModule,
-
     MongooseModule.forFeature([
       {
         name: Page.name,
@@ -26,6 +27,8 @@ import {
       },
     ]),
   ],
-  exports: [MongooseModule],
+  controllers: [PagesController],
+  providers: [PagesService],
+  exports: [PagesService],
 })
 export class PagesModule {}

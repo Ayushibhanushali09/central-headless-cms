@@ -70,6 +70,8 @@ export class PageData {
     default: null,
   })
   publishedAt!: Date | null;
+    createdAt!: Date;
+    updatedAt!: Date;
 }
 
 export type PageDataDocument =

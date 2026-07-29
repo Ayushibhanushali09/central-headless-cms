@@ -64,6 +64,8 @@ export class Page {
     default: PageStatus.Active,
   })
   status!: PageStatus;
+  createdAt!: Date;
+  updatedAt!: Date;
 }
 
 export type PageDocument = HydratedDocument<Page>;

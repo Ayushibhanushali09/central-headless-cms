@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import type { Model } from 'mongoose';
+import type { Model, Types } from 'mongoose';
 import { ulid } from 'ulid';
 
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -29,7 +29,8 @@ export class ProjectsService {
       const project = await this.projectModel.create({
         publicId: `prj_${ulid()}`,
         name: createProjectDto.name.trim(),
-        description: createProjectDto.description?.trim() ?? '',
+        description:
+          createProjectDto.description?.trim() ?? '',
         status: ProjectStatus.Active,
       });
 
@@ -47,15 +48,24 @@ export class ProjectsService {
 
   async findAll(): Promise<ProjectResponseDto[]> {
     const projects = await this.projectModel
-      .find({ status: ProjectStatus.Active })
-      .sort({ updatedAt: -1 })
+      .find({
+        status: ProjectStatus.Active,
+      })
+      .sort({
+        updatedAt: -1,
+      })
       .exec();
 
-    return projects.map((project) => this.toResponse(project));
+    return projects.map((project) =>
+      this.toResponse(project),
+    );
   }
 
-  async findOne(publicId: string): Promise<ProjectResponseDto> {
-    const project = await this.findActiveDocument(publicId);
+  async findOne(
+    publicId: string,
+  ): Promise<ProjectResponseDto> {
+    const project =
+      await this.findActiveDocument(publicId);
 
     return this.toResponse(project);
   }
@@ -73,6 +83,25 @@ export class ProjectsService {
     if (!project) {
       throw new NotFoundException(
         `Project '${publicId}' was not found.`,
+      );
+    }
+
+    return project;
+  }
+
+  async findActiveDocumentByInternalId(
+    internalId: Types.ObjectId,
+  ): Promise<ProjectDocument> {
+    const project = await this.projectModel
+      .findOne({
+        _id: internalId,
+        status: ProjectStatus.Active,
+      })
+      .exec();
+
+    if (!project) {
+      throw new NotFoundException(
+        'The project for this page was not found.',
       );
     }
 
