@@ -38,6 +38,8 @@ export class Project {
     default: ProjectStatus.Active,
   })
   status!: ProjectStatus;
+  createdAt!: Date;
+  updatedAt!: Date;
 }
 
 export type ProjectDocument = HydratedDocument<Project>;
