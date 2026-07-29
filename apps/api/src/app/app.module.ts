@@ -8,6 +8,7 @@ import { HealthController } from './health.controller';
 import { RedisModule } from './redis/redis.module';
 import { PagesModule } from './pages/pages.module';
 import { ProjectsModule } from './projects/projects.module';
+import { SchemaEngineModule } from './schema-engine/schema-engine.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ProjectsModule } from './projects/projects.module';
     }),
 
     RedisModule,
+    SchemaEngineModule,
     ProjectsModule,
     PagesModule,
   ],
