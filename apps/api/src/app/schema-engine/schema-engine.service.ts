@@ -153,15 +153,6 @@ export class SchemaEngineService {
       });
     }
 
-    if (schema.additionalProperties !== false) {
-      issues.push({
-        path: '#/additionalProperties',
-        keyword: 'additionalProperties',
-        message:
-          'Every object schema must set additionalProperties to false.',
-      });
-    }
-
     this.inspectSchemaNode(schema, '#', 0, issues);
 
     if (issues.length > 0) {

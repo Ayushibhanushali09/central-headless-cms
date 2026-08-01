@@ -53,6 +53,12 @@ export class PageData {
   draftVersion!: number;
 
   @Prop({
+    type: Date,
+    default: null,
+  })
+  draftUpdatedAt!: Date | null;
+
+  @Prop({
     type: MongooseSchema.Types.Mixed,
     default: null,
   })
@@ -64,6 +70,13 @@ export class PageData {
     default: 0,
   })
   publishedVersion!: number;
+
+  @Prop({
+    required: true,
+    min: 0,
+    default: 0,
+  })
+  publishedFromDraftVersion!: number;
 
   @Prop({
     type: Date,

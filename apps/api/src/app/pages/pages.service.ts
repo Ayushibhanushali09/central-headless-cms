@@ -55,7 +55,8 @@ export class PagesService {
         name: createPageDto.name.trim(),
         endpointSlug,
         visibility:
-          createPageDto.visibility ?? PageVisibility.Private,
+          createPageDto.visibility ??
+          PageVisibility.Private,
         status: PageStatus.Active,
       });
 
@@ -70,7 +71,9 @@ export class PagesService {
     } catch (error: unknown) {
       if (createdPage) {
         await this.pageModel
-          .deleteOne({ _id: createdPage._id })
+          .deleteOne({
+            _id: createdPage._id,
+          })
           .exec()
           .catch(() => undefined);
       }
@@ -98,7 +101,9 @@ export class PagesService {
         projectId: project._id,
         status: PageStatus.Active,
       })
-      .sort({ updatedAt: -1 })
+      .sort({
+        updatedAt: -1,
+      })
       .exec();
 
     return pages.map((page) =>
@@ -109,6 +114,21 @@ export class PagesService {
   async findOne(
     pagePublicId: string,
   ): Promise<PageResponseDto> {
+    const page = await this.findActiveDocument(
+      pagePublicId,
+    );
+
+    const project =
+      await this.projectsService.findActiveDocumentByInternalId(
+        page.projectId,
+      );
+
+    return this.toResponse(page, project.publicId);
+  }
+
+  async findActiveDocument(
+    pagePublicId: string,
+  ): Promise<PageDocument> {
     const page = await this.pageModel
       .findOne({
         publicId: pagePublicId,
@@ -122,12 +142,7 @@ export class PagesService {
       );
     }
 
-    const project =
-      await this.projectsService.findActiveDocumentByInternalId(
-        page.projectId,
-      );
-
-    return this.toResponse(page, project.publicId);
+    return page;
   }
 
   private createSlug(name: string): string {
