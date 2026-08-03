@@ -9,6 +9,7 @@ import { RedisModule } from './redis/redis.module';
 import { PagesModule } from './pages/pages.module';
 import { ProjectsModule } from './projects/projects.module';
 import { SchemaEngineModule } from './schema-engine/schema-engine.module';
+import { DeliveryModule } from './delivery/delivery.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { SchemaEngineModule } from './schema-engine/schema-engine.module';
     SchemaEngineModule,
     ProjectsModule,
     PagesModule,
+    DeliveryModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
