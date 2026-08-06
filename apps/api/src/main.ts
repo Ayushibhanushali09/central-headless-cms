@@ -36,9 +36,9 @@ async function bootstrap() {
     }),
   );
 
-  const globalPrefix = 'api';
+  const managementApiPrefix = 'api/v1';
 
-  app.setGlobalPrefix(globalPrefix, {
+  app.setGlobalPrefix(managementApiPrefix, {
     exclude: [
       {
         path: 'v1/content/:pageId',
@@ -54,11 +54,11 @@ async function bootstrap() {
   await app.listen(port);
 
   Logger.log(
-    `🚀 Management API running at http://localhost:${port}/${globalPrefix}`,
+    `Management API running at http://localhost:${port}/${managementApiPrefix}`,
   );
 
   Logger.log(
-    `🚀 Delivery API running at http://localhost:${port}/v1/content/:pageId`,
+    `Delivery API running at http://localhost:${port}/v1/content/:pageId`,
   );
 }
 
