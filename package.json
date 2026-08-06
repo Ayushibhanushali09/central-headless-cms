@@ -2,8 +2,37 @@
   "name": "@central-headless-cms/source",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+
+  "scripts": {
+    "dev:admin": "nx dev admin",
+    "dev:api": "nx serve api",
+
+    "build:admin": "nx build admin",
+    "build:api": "nx build api",
+    "build": "nx run-many -t build --projects=admin,api",
+
+    "lint:admin": "nx lint admin",
+    "lint:api": "nx lint api",
+    "lint": "nx run-many -t lint",
+
+    "test:api": "nx test api",
+    "test": "nx run-many -t test",
+
+    "check:api": "nx run-many -t lint,test,build --projects=api",
+
+    "infra:up": "docker compose -f infra/docker-compose.yml up -d",
+    "infra:down": "docker compose -f infra/docker-compose.yml down",
+    "infra:status": "docker compose -f infra/docker-compose.yml ps -a",
+
+    "format": "nx format:write",
+    "format:check": "nx format:check"
+  },
   "private": true,
+  "packageManager": "pnpm@11.15.1",
+  "engines": {
+    "node": ">=24 <25",
+    "pnpm": ">=11 <12"
+  },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
     "@nestjs/schematics": "^11.0.0",
