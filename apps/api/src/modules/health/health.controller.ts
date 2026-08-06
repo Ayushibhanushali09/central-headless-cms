@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import type { Connection } from 'mongoose';
 
-import { RedisService } from './redis/redis.service';
+import { RedisService } from '../../infrastructure/redis/redis.service';
 
 @Controller('health')
 export class HealthController {

@@ -2,14 +2,12 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { HealthController } from './health.controller';
-import { RedisModule } from './redis/redis.module';
-import { PagesModule } from './pages/pages.module';
-import { ProjectsModule } from './projects/projects.module';
-import { SchemaEngineModule } from './schema-engine/schema-engine.module';
-import { DeliveryModule } from './delivery/delivery.module';
+import { RedisModule } from '../infrastructure/redis/redis.module';
+import { DeliveryModule } from '../modules/delivery/delivery.module';
+import { HealthModule } from '../modules/health/health.module';
+import { PagesModule } from '../modules/pages/pages.module';
+import { ProjectsModule } from '../modules/projects/projects.module';
+import { SchemaEngineModule } from '../modules/schema-engine/schema-engine.module';
 
 @Module({
   imports: [
@@ -30,8 +28,7 @@ import { DeliveryModule } from './delivery/delivery.module';
     ProjectsModule,
     PagesModule,
     DeliveryModule,
+    HealthModule,
   ],
-  controllers: [AppController, HealthController],
-  providers: [AppService],
 })
 export class AppModule {}
