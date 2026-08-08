@@ -2,28 +2,21 @@
   "name": "@central-headless-cms/source",
   "version": "0.0.0",
   "license": "MIT",
-
   "scripts": {
     "dev:admin": "nx dev admin",
     "dev:api": "nx serve api",
-
     "build:admin": "nx build admin",
     "build:api": "nx build api",
     "build": "nx run-many -t build --projects=admin,api",
-
     "lint:admin": "nx lint admin",
     "lint:api": "nx lint api",
     "lint": "nx run-many -t lint",
-
     "test:api": "nx test api",
     "test": "nx run-many -t test",
-
     "check:api": "nx run-many -t lint,test,build --projects=api",
-
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
     "infra:status": "docker compose -f infra/docker-compose.yml ps -a",
-
     "format": "nx format:write",
     "format:check": "nx format:check"
   },
@@ -83,6 +76,7 @@
     "webpack-dev-server": "^5.2.1"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^11.0.0",

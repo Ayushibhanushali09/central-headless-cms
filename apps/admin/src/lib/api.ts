@@ -3,6 +3,9 @@ import type {
   CreatePageInput,
   CreateProjectInput,
   Project,
+  PageSchemaInput,
+  PageSchemaState,
+  SchemaValidationResult,
 } from './types';
 
 const controlApiUrl =
@@ -129,4 +132,38 @@ export function getDeliveryUrl(pageId: string): string {
     deliveryApiUrl,
     'NEXT_PUBLIC_DELIVERY_API_URL',
   )}/content/${pageId}`;
+}
+
+export function getPageSchema(
+  pageId: string,
+): Promise<PageSchemaState> {
+  return request<PageSchemaState>(
+    controlUrl(`/pages/${pageId}/schema`),
+  );
+}
+
+export function validatePageSchema(
+  pageId: string,
+  input: PageSchemaInput,
+): Promise<SchemaValidationResult> {
+  return request<SchemaValidationResult>(
+    controlUrl(`/pages/${pageId}/schema/validate`),
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function savePageSchema(
+  pageId: string,
+  input: PageSchemaInput,
+): Promise<PageSchemaState> {
+  return request<PageSchemaState>(
+    controlUrl(`/pages/${pageId}/schema`),
+    {
+      method: 'PUT',
+      body: JSON.stringify(input),
+    },
+  );
 }

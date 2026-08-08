@@ -34,3 +34,27 @@ export interface CreatePageInput {
   endpointSlug?: string;
   visibility?: PageVisibility;
 }
+
+export interface SchemaValidationIssue {
+  path: string;
+  keyword: string;
+  message: string;
+}
+
+export interface SchemaValidationResult {
+  valid: boolean;
+  schemaHash: string | null;
+  errors: SchemaValidationIssue[];
+}
+
+export interface PageSchemaState {
+  pageId: string;
+  schemaDefinition: Record<string, unknown> | null;
+  schemaVersion: number;
+  schemaHash: string | null;
+  updatedAt: string;
+}
+
+export interface PageSchemaInput {
+  schemaDefinition: Record<string, unknown>;
+}
