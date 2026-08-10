@@ -13,6 +13,7 @@ import { AppShell } from '../../../../../components/app-shell';
 import { JsonSchemaEditor } from '../../../../../features/schema-editor/json-schema-editor';
 import { DEFAULT_PAGE_SCHEMA } from '../../../../../features/schema-editor/schema-template';
 import {
+  getDeliveryUrl,
   getPage,
   getPageSchema,
   savePageSchema,
@@ -25,6 +26,7 @@ import type {
   SchemaValidationResult,
 } from '../../../../../lib/types';
 import styles from './page.module.css';
+import { PageEditorNav } from '../../../../../components/page-editor-nav';
 
 interface SchemaOutlineItem {
   name: string;
@@ -79,6 +81,10 @@ export default function PageSchemaEditor() {
   );
 
   const isDirty = editorValue !== savedValue;
+
+  const deliveryUrl = page
+  ? getDeliveryUrl(page.id)
+  : null;
 
   const loadEditor = useCallback(async () => {
     try {
@@ -318,18 +324,37 @@ export default function PageSchemaEditor() {
 
   return (
     <AppShell
+
       title={page?.name ?? 'Page Schema'}
       description="Define the strict JSON structure used by the Content Editor and Delivery API."
       actions={
-        <Link
-          href={`/projects/${params.projectId}`}
-          className={styles.backButton}
-          onClick={handleBackClick}
-        >
-          ← Pages
-        </Link>
+        <div className={styles.headerActions}>
+          {deliveryUrl && page?.visibility === 'public' ? (
+            <a
+              href={deliveryUrl}
+              target="_blank"
+              rel="noreferrer"
+              className={styles.deliveryButton}
+            >
+            Open Published API ↗
+            </a>
+          ) : null}
+
+          <Link
+            href={`/projects/${params.projectId}`}
+            className={styles.backButton}
+            onClick={handleBackClick}
+          >
+            ← Pages
+          </Link>
+        </div>
       }
     >
+      <PageEditorNav
+        projectId={params.projectId}
+        pageId={params.pageId}
+        active="schema"
+/>
       {error ? (
         <div className={styles.errorMessage} role="alert">
           {error}

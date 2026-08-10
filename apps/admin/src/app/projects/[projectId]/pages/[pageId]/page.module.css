@@ -288,4 +288,33 @@
   .sidePanel {
     grid-template-columns: 1fr;
   }
+
+  .headerActions {
+  align-items: stretch;
+  flex-direction: column;
+  }
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deliveryButton {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border-radius: 9px;
+  background: #4f61e8;
+  color: white;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 7px 18px rgb(79 97 232 / 20%);
+}
+
+.deliveryButton:hover {
+  background: #4253d4;
 }

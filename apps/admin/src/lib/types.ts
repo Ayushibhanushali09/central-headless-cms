@@ -58,3 +58,22 @@ export interface PageSchemaState {
 export interface PageSchemaInput {
   schemaDefinition: Record<string, unknown>;
 }
+
+export interface PageContentState {
+  pageId: string;
+  schemaVersion: number;
+  schemaHash: string;
+  draftData: Record<string, unknown> | null;
+  draftVersion: number;
+  draftUpdatedAt: string | null;
+  publishedData: Record<string, unknown> | null;
+  publishedVersion: number;
+  publishedFromDraftVersion: number;
+  publishedAt: string | null;
+  hasUnpublishedChanges: boolean;
+  updatedAt: string;
+}
+
+export interface SaveDraftInput {
+  contentData: Record<string, unknown>;
+}

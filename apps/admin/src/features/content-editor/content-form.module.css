@@ -1,0 +1,147 @@
+.formContainer :global(fieldset) {
+  min-width: 0;
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.formContainer :global(fieldset fieldset) {
+  margin-top: 8px;
+  padding: 18px;
+  border: 1px solid #e3e8f0;
+  border-radius: 12px;
+  background: #f9fbfd;
+}
+
+.formContainer :global(legend) {
+  margin-bottom: 12px;
+  color: #243047;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.formContainer :global(.form-group) {
+  display: grid;
+  gap: 7px;
+}
+
+.formContainer :global(label) {
+  color: #3d4960;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.formContainer :global(label .required) {
+  color: #e04a56;
+}
+
+.formContainer :global(input),
+.formContainer :global(textarea),
+.formContainer :global(select) {
+  width: 100%;
+  min-height: 43px;
+  padding: 10px 12px;
+  border: 1px solid #d7dfeb;
+  border-radius: 9px;
+  outline: none;
+  background: white;
+  color: #202b40;
+}
+
+.formContainer :global(textarea) {
+  resize: vertical;
+}
+
+.formContainer :global(input:focus),
+.formContainer :global(textarea:focus),
+.formContainer :global(select:focus) {
+  border-color: #6878ed;
+  box-shadow: 0 0 0 3px rgb(104 120 237 / 12%);
+}
+
+.formContainer :global(.text-danger),
+.formContainer :global(.error-detail) {
+  color: #b13942;
+  font-size: 11px;
+}
+
+.formContainer :global(.field-description) {
+  color: #8994a7;
+  font-size: 11px;
+}
+
+.formContainer :global(.array-item) {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.formContainer :global(button.btn) {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d8dfeb;
+  border-radius: 8px;
+  background: white;
+  cursor: pointer;
+}
+
+.imageWidget {
+  display: grid;
+  gap: 10px;
+}
+
+.imagePreview {
+  width: min(100%, 320px);
+  overflow: hidden;
+  border: 1px solid #e0e6ef;
+  border-radius: 10px;
+  background: #eef2f7;
+}
+
+.imagePreview img {
+  width: 100%;
+  max-height: 180px;
+  display: block;
+  object-fit: cover;
+}
+
+.formActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e8ecf2;
+}
+
+.formActions span {
+  color: #7a869b;
+  font-size: 12px;
+}
+
+.formActions button {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 9px;
+  background: #4f61e8;
+  color: white;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.formActions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 640px) {
+  .formActions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

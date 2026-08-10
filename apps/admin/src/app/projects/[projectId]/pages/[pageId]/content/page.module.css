@@ -1,0 +1,190 @@
+.backButton,
+.secondaryButton {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border: 1px solid #dce2ec;
+  border-radius: 9px;
+  background: white;
+  color: #344056;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.secondaryButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.errorMessage,
+.successMessage,
+.loadingCard,
+.backendIssues,
+.emptySchema {
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 10px;
+}
+
+.errorMessage {
+  border: 1px solid #ffc9cc;
+  background: #fff3f3;
+  color: #a93038;
+}
+
+.successMessage {
+  border: 1px solid #bcebd5;
+  background: #effbf5;
+  color: #14734d;
+}
+
+.loadingCard,
+.emptySchema {
+  border: 1px solid #e1e7f0;
+  background: white;
+  color: #788399;
+}
+
+.emptySchema {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+
+.emptySchema h2 {
+  margin: 0;
+  color: #253047;
+}
+
+.emptySchema p {
+  margin: 8px 0 16px;
+}
+
+.emptySchema a {
+  color: #4f61e8;
+  font-weight: 750;
+}
+
+.backendIssues {
+  border: 1px solid #ffd0d3;
+  background: #fff7f7;
+  color: #873038;
+}
+
+.backendIssues ul {
+  display: grid;
+  gap: 7px;
+  margin: 10px 0 0;
+  padding-left: 18px;
+}
+
+.backendIssues li {
+  font-size: 12px;
+}
+
+.backendIssues code {
+  margin-right: 8px;
+  font-size: 10px;
+}
+
+.versionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.versionGrid article {
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  border: 1px solid #e2e7f0;
+  border-radius: 13px;
+  background: white;
+  box-shadow: 0 8px 25px rgb(30 46 78 / 5%);
+}
+
+.versionGrid span,
+.versionGrid small {
+  color: #8490a4;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.versionGrid strong {
+  color: #253047;
+  font-size: 24px;
+}
+
+.versionGrid small {
+  text-transform: none;
+}
+
+.warningValue {
+  color: #a47411 !important;
+}
+
+.okValue {
+  color: #168457 !important;
+}
+
+.contentPanel {
+  padding: 24px;
+  border: 1px solid #e0e6ef;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 9px 28px rgb(30 46 78 / 5%);
+}
+
+.panelHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #e8ecf2;
+}
+
+.panelHeading h2 {
+  margin: 4px 0 6px;
+  color: #253047;
+  font-size: 20px;
+}
+
+.panelHeading p {
+  margin: 0;
+  color: #7c889c;
+  font-size: 12px;
+}
+
+.eyebrow {
+  color: #5264df !important;
+  font-size: 10px !important;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 950px) {
+  .versionGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .versionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .panelHeading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
