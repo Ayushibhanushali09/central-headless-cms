@@ -8,6 +8,7 @@ import type {
   Project,
   SaveDraftInput,
   SchemaValidationResult,
+  PublishContentInput,
 } from './types';
 
 const controlApiUrl =
@@ -225,5 +226,26 @@ export function savePageDraft(
       method: 'PUT',
       body: JSON.stringify(input),
     },
+  );
+}
+
+export function publishPageContent(
+  pageId: string,
+  input: PublishContentInput,
+): Promise<PageContentState> {
+  return request<PageContentState>(
+    controlUrl(`/pages/${pageId}/content/publish`),
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function getPublishedContent(
+  pageId: string,
+): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>(
+    getDeliveryUrl(pageId),
   );
 }

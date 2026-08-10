@@ -77,3 +77,7 @@ export interface PageContentState {
 export interface SaveDraftInput {
   contentData: Record<string, unknown>;
 }
+
+export interface PublishContentInput {
+  expectedDraftVersion: number;
+}

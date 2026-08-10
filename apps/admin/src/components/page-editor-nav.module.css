@@ -10,7 +10,7 @@
 
 .item,
 .activeItem {
-  min-width: 104px;
+  min-width: 118px;
   min-height: 36px;
   display: inline-flex;
   align-items: center;

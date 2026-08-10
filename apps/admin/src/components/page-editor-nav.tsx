@@ -5,7 +5,7 @@ import styles from './page-editor-nav.module.css';
 interface PageEditorNavProps {
   projectId: string;
   pageId: string;
-  active: 'schema' | 'content';
+  active: 'schema' | 'content' | 'publish';
 }
 
 export function PageEditorNav({
@@ -15,6 +15,14 @@ export function PageEditorNav({
 }: PageEditorNavProps) {
   const basePath = `/projects/${projectId}/pages/${pageId}`;
 
+  function itemClass(
+    item: PageEditorNavProps['active'],
+  ) {
+    return active === item
+      ? styles.activeItem
+      : styles.item;
+  }
+
   return (
     <nav
       className={styles.navigation}
@@ -22,23 +30,21 @@ export function PageEditorNav({
     >
       <Link
         href={basePath}
-        className={
-          active === 'schema'
-            ? styles.activeItem
-            : styles.item
-        }
+        className={itemClass('schema')}
       >
         Schema
       </Link>
       <Link
         href={`${basePath}/content`}
-        className={
-          active === 'content'
-            ? styles.activeItem
-            : styles.item
-        }
+        className={itemClass('content')}
       >
         Content
+      </Link>
+      <Link
+        href={`${basePath}/publish`}
+        className={itemClass('publish')}
+      >
+        Publish &amp; API
       </Link>
     </nav>
   );
