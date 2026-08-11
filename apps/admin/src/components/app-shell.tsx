@@ -18,6 +18,10 @@ export function AppShell({
 }: AppShellProps) {
   return (
     <div className={styles.shell}>
+      <a href="#main-content" className={styles.skipLink}>
+        Skip to main content
+      </a>
+
       <aside className={styles.sidebar}>
         <Link href="/dashboard" className={styles.brand}>
           <span className={styles.brandMark}>C</span>
@@ -55,8 +59,11 @@ export function AppShell({
         </div>
       </aside>
 
-      <main className={styles.main}>
-
+      <main
+        id="main-content"
+        className={styles.main}
+        tabIndex={-1}
+      >
 
         <header className={styles.header}>
           <div>

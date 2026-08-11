@@ -11,6 +11,7 @@ import {
 
 import { AppShell } from '../../../../../../components/app-shell';
 import { PageEditorNav } from '../../../../../../components/page-editor-nav';
+import { useDialogFocus } from '../../../../../../hooks/use-dialog-focus';
 import {
   ApiError,
   getDeliveryUrl,
@@ -51,24 +52,42 @@ export default function PublishPage() {
   }>();
 
   const [page, setPage] = useState<CmsPage | null>(null);
+
   const [contentState, setContentState] =
     useState<PageContentState | null>(null);
+
   const [deliveryPreview, setDeliveryPreview] = useState<
     Record<string, unknown> | null
   >(null);
+
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
+
   const [showConfirmation, setShowConfirmation] =
     useState(false);
+
   const [error, setError] = useState<string | null>(null);
+
   const [success, setSuccess] = useState<string | null>(
     null,
   );
+
   const [copied, setCopied] = useState(false);
 
   const deliveryUrl = useMemo(
     () => getDeliveryUrl(params.pageId),
     [params.pageId],
+  );
+
+  const closeConfirmation = useCallback(() => {
+    if (!publishing) {
+      setShowConfirmation(false);
+    }
+  }, [publishing]);
+
+  const publishDialogRef = useDialogFocus(
+    showConfirmation,
+    closeConfirmation,
   );
 
   const loadPublishingState = useCallback(async () => {
@@ -115,27 +134,6 @@ export default function PublishPage() {
     void loadPublishingState();
   }, [loadPublishingState]);
 
-  useEffect(() => {
-    if (!showConfirmation) {
-      return;
-    }
-
-    function closeOnEscape(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !publishing) {
-        setShowConfirmation(false);
-      }
-    }
-
-    window.addEventListener('keydown', closeOnEscape);
-
-    return () => {
-      window.removeEventListener(
-        'keydown',
-        closeOnEscape,
-      );
-    };
-  }, [showConfirmation, publishing]);
-
   async function handlePublish() {
     if (!contentState) {
       return;
@@ -156,6 +154,7 @@ export default function PublishPage() {
 
       setContentState(published);
       setShowConfirmation(false);
+
       setSuccess(
         `Draft version ${published.publishedFromDraftVersion} published successfully.`,
       );
@@ -192,8 +191,12 @@ export default function PublishPage() {
   async function handleCopyEndpoint() {
     try {
       await navigator.clipboard.writeText(deliveryUrl);
+
       setCopied(true);
-      window.setTimeout(() => setCopied(false), 1800);
+
+      window.setTimeout(() => {
+        setCopied(false);
+      }, 1800);
     } catch {
       setError('Delivery endpoint could not be copied.');
     }
@@ -228,6 +231,7 @@ export default function PublishPage() {
       {error ? (
         <div className={styles.errorMessage} role="alert">
           <span>{error}</span>
+
           <button
             type="button"
             onClick={loadPublishingState}
@@ -238,7 +242,10 @@ export default function PublishPage() {
       ) : null}
 
       {success ? (
-        <div className={styles.successMessage} role="status">
+        <div
+          className={styles.successMessage}
+          role="status"
+        >
           {success}
         </div>
       ) : null}
@@ -257,6 +264,7 @@ export default function PublishPage() {
                 {formatDate(contentState.draftUpdatedAt)}
               </small>
             </article>
+
             <article>
               <span>Published version</span>
               <strong>{contentState.publishedVersion}</strong>
@@ -264,6 +272,7 @@ export default function PublishPage() {
                 {formatDate(contentState.publishedAt)}
               </small>
             </article>
+
             <article>
               <span>Published from Draft</span>
               <strong>
@@ -271,8 +280,10 @@ export default function PublishPage() {
               </strong>
               <small>Source Draft version</small>
             </article>
+
             <article>
               <span>Publish status</span>
+
               <strong
                 className={
                   contentState.hasUnpublishedChanges
@@ -284,18 +295,23 @@ export default function PublishPage() {
                   ? 'Changes pending'
                   : 'Up to date'}
               </strong>
+
               <small>{page.visibility} Page</small>
             </article>
           </div>
 
           <section className={styles.publishPanel}>
             <div>
-              <p className={styles.eyebrow}>Release content</p>
+              <p className={styles.eyebrow}>
+                Release content
+              </p>
+
               <h2>
                 {canPublish
                   ? `Publish Draft ${contentState.draftVersion}`
                   : 'Published content is up to date'}
               </h2>
+
               <p>
                 Publish copies the validated Draft into the
                 public publication without changing the Draft.
@@ -308,7 +324,9 @@ export default function PublishPage() {
               disabled={!canPublish || publishing}
               onClick={() => setShowConfirmation(true)}
             >
-              {publishing ? 'Publishing…' : 'Publish Draft'}
+              {publishing
+                ? 'Publishing…'
+                : 'Publish Draft'}
             </button>
           </section>
 
@@ -316,15 +334,22 @@ export default function PublishPage() {
             <section className={styles.jsonPanel}>
               <div className={styles.panelHeading}>
                 <div>
-                  <p className={styles.eyebrow}>Draft</p>
-                  <h2>Version {contentState.draftVersion}</h2>
+                  <p className={styles.eyebrow}>
+                    Draft
+                  </p>
+
+                  <h2>
+                    Version {contentState.draftVersion}
+                  </h2>
                 </div>
+
                 {contentState.hasUnpublishedChanges ? (
                   <span className={styles.pendingBadge}>
                     Pending
                   </span>
                 ) : null}
               </div>
+
               <pre>
                 {prettyJson(contentState.draftData)}
               </pre>
@@ -333,13 +358,20 @@ export default function PublishPage() {
             <section className={styles.jsonPanel}>
               <div className={styles.panelHeading}>
                 <div>
-                  <p className={styles.eyebrow}>Published</p>
+                  <p className={styles.eyebrow}>
+                    Published
+                  </p>
+
                   <h2>
                     Version {contentState.publishedVersion}
                   </h2>
                 </div>
-                <span className={styles.liveBadge}>Live</span>
+
+                <span className={styles.liveBadge}>
+                  Live
+                </span>
               </div>
+
               <pre>
                 {prettyJson(contentState.publishedData)}
               </pre>
@@ -349,8 +381,12 @@ export default function PublishPage() {
           <section className={styles.deliveryPanel}>
             <div className={styles.panelHeading}>
               <div>
-                <p className={styles.eyebrow}>Headless API</p>
+                <p className={styles.eyebrow}>
+                  Headless API
+                </p>
+
                 <h2>Delivery Endpoint</h2>
+
                 <p>
                   Returns only the latest Published JSON.
                 </p>
@@ -364,6 +400,7 @@ export default function PublishPage() {
                 >
                   {copied ? 'Copied!' : 'Copy URL'}
                 </button>
+
                 {page.visibility === 'public' ? (
                   <a
                     href={deliveryUrl}
@@ -384,7 +421,8 @@ export default function PublishPage() {
             {page.visibility === 'private' ? (
               <div className={styles.privateNotice}>
                 This Page is private. Public Delivery remains
-                unavailable until private API keys are implemented.
+                unavailable until private API keys are
+                implemented.
               </div>
             ) : deliveryPreview ? (
               <pre className={styles.deliveryPreview}>
@@ -408,20 +446,25 @@ export default function PublishPage() {
               event.target === event.currentTarget &&
               !publishing
             ) {
-              setShowConfirmation(false);
+              closeConfirmation();
             }
           }}
         >
           <section
+            ref={publishDialogRef}
             className={styles.modal}
             role="dialog"
             aria-modal="true"
             aria-labelledby="publish-dialog-title"
           >
-            <p className={styles.eyebrow}>Confirm Publish</p>
+            <p className={styles.eyebrow}>
+              Confirm Publish
+            </p>
+
             <h2 id="publish-dialog-title">
               Publish Draft {contentState.draftVersion}?
             </h2>
+
             <p>
               This will create Published version{' '}
               {contentState.publishedVersion + 1}. The current
@@ -430,10 +473,13 @@ export default function PublishPage() {
 
             <div className={styles.modalSummary}>
               <span>Current Published</span>
+
               <strong>
                 Version {contentState.publishedVersion}
               </strong>
+
               <span>New source Draft</span>
+
               <strong>
                 Version {contentState.draftVersion}
               </strong>
@@ -443,11 +489,12 @@ export default function PublishPage() {
               <button
                 type="button"
                 className={styles.secondaryButton}
-                onClick={() => setShowConfirmation(false)}
+                onClick={closeConfirmation}
                 disabled={publishing}
               >
                 Cancel
               </button>
+
               <button
                 type="button"
                 className={styles.publishButton}

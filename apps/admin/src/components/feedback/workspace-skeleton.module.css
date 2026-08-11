@@ -1,0 +1,151 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  background: #f4f7fb;
+}
+
+.sidebar {
+  padding: 24px 18px;
+  background: #101a2e;
+}
+
+.brand,
+.navItem,
+.title,
+.description,
+.stats div,
+.panelTitle,
+.row {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #e7ebf2;
+}
+
+.brand,
+.navItem {
+  background: #243149;
+}
+
+.brand {
+  width: 150px;
+  height: 42px;
+  margin-bottom: 30px;
+}
+
+.navItem {
+  width: 100%;
+  height: 44px;
+}
+
+.main {
+  padding: 54px 42px;
+}
+
+.title {
+  width: 250px;
+  height: 42px;
+}
+
+.description {
+  width: min(420px, 80%);
+  height: 16px;
+  margin-top: 14px;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 32px;
+}
+
+.stats div {
+  height: 116px;
+  background: white;
+}
+
+.panel {
+  margin-top: 24px;
+  padding: 24px;
+  border: 1px solid #e2e7ef;
+  border-radius: 16px;
+  background: white;
+}
+
+.panelTitle {
+  width: 180px;
+  height: 20px;
+  margin-bottom: 24px;
+}
+
+.row {
+  height: 62px;
+  margin-top: 10px;
+}
+
+.brand::after,
+.navItem::after,
+.title::after,
+.description::after,
+.stats div::after,
+.panelTitle::after,
+.row::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 56%),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: shimmer 1.35s infinite;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@keyframes shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (max-width: 820px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    padding: 32px 22px;
+  }
+
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand::after,
+  .navItem::after,
+  .title::after,
+  .description::after,
+  .stats div::after,
+  .panelTitle::after,
+  .row::after {
+    animation: none;
+  }
+}

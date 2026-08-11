@@ -171,3 +171,23 @@
     padding-right: 22px;
   }
 }
+
+.skipLink {
+  position: fixed;
+  z-index: 2000;
+  top: 12px;
+  left: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: white;
+  color: #26334b;
+  font-weight: 750;
+  text-decoration: none;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 22%);
+  transform: translateY(-160%);
+  transition: transform 150ms ease;
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}
