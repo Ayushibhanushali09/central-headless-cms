@@ -13,6 +13,7 @@
     "lint": "nx run-many -t lint",
     "test:api": "nx test api",
     "test": "nx run-many -t test",
+    "e2e:admin": "nx e2e admin-e2e",
     "check:api": "nx run-many -t lint,test,build --projects=api",
     "infra:up": "docker compose -f infra/docker-compose.yml up -d",
     "infra:down": "docker compose -f infra/docker-compose.yml down",
