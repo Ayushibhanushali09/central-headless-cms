@@ -11,9 +11,13 @@ import { ProjectsService } from '../projects/projects.service';
 import { CreatePageDto } from './dto/create-page.dto';
 import { PageResponseDto } from './dto/page-response.dto';
 import {
-  PageData,
-  type PageDataDocument,
-} from './schemas/page-data.schema';
+  PageDraft,
+  type PageDraftDocument,
+} from './schemas/page-draft.schema';
+import {
+  PageSchemaRecord,
+  type PageSchemaRecordDocument,
+} from './schemas/page-schema-record.schema';
 import {
   Page,
   type PageDocument,
@@ -27,8 +31,11 @@ export class PagesService {
     @InjectModel(Page.name)
     private readonly pageModel: Model<PageDocument>,
 
-    @InjectModel(PageData.name)
-    private readonly pageDataModel: Model<PageDataDocument>,
+    @InjectModel(PageSchemaRecord.name)
+    private readonly pageSchemaModel: Model<PageSchemaRecordDocument>,
+
+    @InjectModel(PageDraft.name)
+    private readonly pageDraftModel: Model<PageDraftDocument>,
 
     private readonly projectsService: ProjectsService,
   ) {}
@@ -60,9 +67,24 @@ export class PagesService {
         status: PageStatus.Active,
       });
 
-      await this.pageDataModel.create({
-        pageId: createdPage._id,
-      });
+      await Promise.all([
+        this.pageSchemaModel.create({
+          pageId: createdPage._id,
+          schemaDefinition: null,
+          schemaVersion: 0,
+          schemaHash: '',
+          updatedBy: null,
+        }),
+
+        this.pageDraftModel.create({
+          pageId: createdPage._id,
+          schemaVersion: 0,
+          draftData: null,
+          draftVersion: 0,
+          draftUpdatedAt: null,
+          updatedBy: null,
+        }),
+      ]);
 
       return this.toResponse(
         createdPage,
@@ -70,12 +92,25 @@ export class PagesService {
       );
     } catch (error: unknown) {
       if (createdPage) {
-        await this.pageModel
-          .deleteOne({
-            _id: createdPage._id,
-          })
-          .exec()
-          .catch(() => undefined);
+        await Promise.allSettled([
+          this.pageSchemaModel
+            .deleteOne({
+              pageId: createdPage._id,
+            })
+            .exec(),
+
+          this.pageDraftModel
+            .deleteOne({
+              pageId: createdPage._id,
+            })
+            .exec(),
+
+          this.pageModel
+            .deleteOne({
+              _id: createdPage._id,
+            })
+            .exec(),
+        ]);
       }
 
       if (this.isDuplicateKeyError(error)) {

@@ -10,15 +10,6 @@ import { PageSchemaService } from './page-schema.service';
 import { PagesController } from './pages.controller';
 import { PagesService } from './pages.service';
 import {
-  PageData,
-  PageDataSchema,
-} from './schemas/page-data.schema';
-import {
-  Page,
-  PageSchema,
-} from './schemas/page.schema';
-
-import {
   PageDraft,
   PageDraftSchema,
 } from './schemas/page-draft.schema';
@@ -30,19 +21,20 @@ import {
   PageSchemaRecord,
   PageSchemaRecordSchema,
 } from './schemas/page-schema-record.schema';
+import {
+  Page,
+  PageSchema,
+} from './schemas/page.schema';
 
 @Module({
   imports: [
     ProjectsModule,
     SchemaEngineModule,
+
     MongooseModule.forFeature([
       {
         name: Page.name,
         schema: PageSchema,
-      },
-      {
-        name: PageData.name,
-        schema: PageDataSchema,
       },
       {
         name: PageSchemaRecord.name,
@@ -55,19 +47,22 @@ import {
       {
         name: PagePublication.name,
         schema: PagePublicationSchema,
-    },
+      },
     ]),
   ],
+
   controllers: [
     PagesController,
     PageSchemaController,
     PageContentController,
   ],
+
   providers: [
     PagesService,
     PageSchemaService,
     PageContentService,
   ],
+
   exports: [
     PagesService,
     PageSchemaService,

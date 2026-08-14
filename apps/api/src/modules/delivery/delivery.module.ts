@@ -1,21 +1,19 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
-import { PagesModule } from '../pages/pages.module';
 import {
-  PageData,
-  PageDataSchema,
-} from '../pages/schemas/page-data.schema';
+  PagePublication,
+  PagePublicationSchema,
+} from '../pages/schemas/page-publication.schema';
 import { DeliveryController } from './delivery.controller';
 import { DeliveryService } from './delivery.service';
 
 @Module({
   imports: [
-    PagesModule,
     MongooseModule.forFeature([
       {
-        name: PageData.name,
-        schema: PageDataSchema,
+        name: PagePublication.name,
+        schema: PagePublicationSchema,
       },
     ]),
   ],

@@ -2,117 +2,122 @@ import { NotFoundException } from '@nestjs/common';
 import type { Model } from 'mongoose';
 import { Types } from 'mongoose';
 
-import { PagesService } from '../pages/pages.service';
-import type { PageDataDocument } from '../pages/schemas/page-data.schema';
 import {
-  type PageDocument,
-  PageStatus,
-  PageVisibility,
-} from '../pages/schemas/page.schema';
+  type PagePublicationDocument,
+  PublicationStatus,
+} from '../pages/schemas/page-publication.schema';
+import { PageVisibility } from '../pages/schemas/page.schema';
 import { DeliveryService } from './delivery.service';
 
 const pageObjectId = new Types.ObjectId();
-const pagePublicId = 'pg_01JTESTPAGE0000000000000000';
+const projectObjectId = new Types.ObjectId();
 
-function createPage(
-  visibility: PageVisibility,
-): PageDocument {
+const pagePublicId =
+  'pg_01JTESTPAGE0000000000000000';
+
+function createPublication(
+  overrides: Partial<PagePublicationDocument> = {},
+): PagePublicationDocument {
   return {
-    _id: pageObjectId,
-    publicId: pagePublicId,
-    projectId: new Types.ObjectId(),
-    name: 'Home Page',
-    endpointSlug: 'home',
-    visibility,
-    status: PageStatus.Active,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  } as PageDocument;
+    _id: new Types.ObjectId(),
+    pageId: pageObjectId,
+    pagePublicId,
+    projectId: projectObjectId,
+    visibility: PageVisibility.Public,
+    status: PublicationStatus.Published,
+    publishedData: {
+      hero: {
+        heading: 'Published Homepage',
+      },
+    },
+    publishedVersion: 1,
+    publishedFromDraftVersion: 1,
+    schemaHash: 'a'.repeat(64),
+    publishedAt: new Date(
+      '2026-07-01T10:00:00.000Z',
+    ),
+    publishedBy: null,
+    createdAt: new Date(
+      '2026-07-01T10:00:00.000Z',
+    ),
+    updatedAt: new Date(
+      '2026-07-01T10:00:00.000Z',
+    ),
+    ...overrides,
+  } as PagePublicationDocument;
 }
 
 describe('DeliveryService', () => {
-  const pageDataFindOne = jest.fn();
+  const publicationFindOne = jest.fn();
+  const publicationSelect = jest.fn();
 
-  const pageDataModel = {
-    findOne: pageDataFindOne,
-  } as unknown as Model<PageDataDocument>;
-
-  const pagesService = {
-    findActiveDocument: jest.fn(),
-  } as unknown as PagesService;
+  const pagePublicationModel = {
+    findOne: publicationFindOne,
+  } as unknown as Model<PagePublicationDocument>;
 
   let service: DeliveryService;
 
   beforeEach(() => {
     jest.clearAllMocks();
+
     service = new DeliveryService(
-      pageDataModel,
-      pagesService,
+      pagePublicationModel,
     );
   });
 
-  it('returns raw published content for a public Page', async () => {
-    const publishedData = {
-      hero: {
-        heading: 'Published Homepage',
-      },
-    };
+  it('returns raw Published content from one indexed query', async () => {
+    const publication = createPublication();
 
-    jest
-      .spyOn(pagesService, 'findActiveDocument')
-      .mockResolvedValue(
-        createPage(PageVisibility.Public),
-      );
+    const exec = jest
+      .fn()
+      .mockResolvedValue(publication);
 
-    pageDataFindOne.mockReturnValue({
-      exec: jest.fn().mockResolvedValue({
-        pageId: pageObjectId,
-        draftData: {
-          hero: {
-            heading: 'Unpublished Draft',
-          },
-        },
-        publishedData,
-        publishedVersion: 1,
-      }),
+    publicationSelect.mockReturnValue({
+      exec,
     });
 
-    const result = await service.getPublishedContent(
+    publicationFindOne.mockReturnValue({
+      select: publicationSelect,
+    });
+
+    const result =
+      await service.getPublishedContent(
+        pagePublicId,
+      );
+
+    expect(publicationFindOne).toHaveBeenCalledWith({
       pagePublicId,
+      visibility: PageVisibility.Public,
+      status: PublicationStatus.Published,
+      publishedVersion: {
+        $gte: 1,
+      },
+    });
+
+    expect(publicationSelect).toHaveBeenCalledWith({
+      publishedData: 1,
+    });
+
+    expect(result).toEqual(
+      publication.publishedData,
     );
 
-    expect(result).toEqual(publishedData);
     expect(result).not.toHaveProperty('draftData');
-    expect(result).not.toHaveProperty('publishedVersion');
+    expect(result).not.toHaveProperty(
+      'publishedVersion',
+    );
+    expect(result).not.toHaveProperty('_id');
   });
 
-  it('hides private Pages behind a generic 404', async () => {
-    jest
-      .spyOn(pagesService, 'findActiveDocument')
-      .mockResolvedValue(
-        createPage(PageVisibility.Private),
-      );
+  it('returns generic 404 when no public Publication exists', async () => {
+    const exec = jest.fn().mockResolvedValue(null);
 
-    await expect(
-      service.getPublishedContent(pagePublicId),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    publicationSelect.mockReturnValue({
+      exec,
+    });
 
-    expect(pageDataFindOne).not.toHaveBeenCalled();
-  });
-
-  it('returns 404 when the Page has no published content', async () => {
-    jest
-      .spyOn(pagesService, 'findActiveDocument')
-      .mockResolvedValue(
-        createPage(PageVisibility.Public),
-      );
-
-    pageDataFindOne.mockReturnValue({
-      exec: jest.fn().mockResolvedValue({
-        pageId: pageObjectId,
-        publishedData: null,
-        publishedVersion: 0,
-      }),
+    publicationFindOne.mockReturnValue({
+      select: publicationSelect,
     });
 
     await expect(
@@ -120,36 +125,77 @@ describe('DeliveryService', () => {
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 
-  it('returns 404 when PageData is missing', async () => {
-    jest
-      .spyOn(pagesService, 'findActiveDocument')
-      .mockResolvedValue(
-        createPage(PageVisibility.Public),
-      );
+  it('does not return a private Publication', async () => {
+    const exec = jest.fn().mockResolvedValue(null);
 
-    pageDataFindOne.mockReturnValue({
-      exec: jest.fn().mockResolvedValue(null),
+    publicationSelect.mockReturnValue({
+      exec,
     });
 
-    await expect(
-      service.getPublishedContent(pagePublicId),
-    ).rejects.toBeInstanceOf(NotFoundException);
-  });
-
-  it('normalizes an unknown Page to the generic 404', async () => {
-    jest
-      .spyOn(pagesService, 'findActiveDocument')
-      .mockRejectedValue(
-        new NotFoundException('Page not found.'),
-      );
+    publicationFindOne.mockReturnValue({
+      select: publicationSelect,
+    });
 
     await expect(
       service.getPublishedContent(pagePublicId),
     ).rejects.toMatchObject({
       response: {
         code: 'CONTENT_NOT_FOUND',
-        message: 'Published content was not found.',
+        message:
+          'Published content was not found.',
       },
     });
+
+    expect(publicationFindOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        visibility: PageVisibility.Public,
+      }),
+    );
+  });
+
+  it('requires Published status', async () => {
+    const exec = jest.fn().mockResolvedValue(null);
+
+    publicationSelect.mockReturnValue({
+      exec,
+    });
+
+    publicationFindOne.mockReturnValue({
+      select: publicationSelect,
+    });
+
+    await expect(
+      service.getPublishedContent(pagePublicId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(publicationFindOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: PublicationStatus.Published,
+      }),
+    );
+  });
+
+  it('requires a positive Published version', async () => {
+    const exec = jest.fn().mockResolvedValue(null);
+
+    publicationSelect.mockReturnValue({
+      exec,
+    });
+
+    publicationFindOne.mockReturnValue({
+      select: publicationSelect,
+    });
+
+    await expect(
+      service.getPublishedContent(pagePublicId),
+    ).rejects.toBeInstanceOf(NotFoundException);
+
+    expect(publicationFindOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        publishedVersion: {
+          $gte: 1,
+        },
+      }),
+    );
   });
 });

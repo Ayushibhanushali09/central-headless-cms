@@ -13,15 +13,30 @@ import { PublishContentDto } from './dto/publish-content.dto';
 import { SaveDraftContentDto } from './dto/save-draft-content.dto';
 import { PagesService } from './pages.service';
 import {
-  PageData,
-  type PageDataDocument,
-} from './schemas/page-data.schema';
+  PageDraft,
+  type PageDraftDocument,
+} from './schemas/page-draft.schema';
+import {
+  PagePublication,
+  type PagePublicationDocument,
+  PublicationStatus,
+} from './schemas/page-publication.schema';
+import {
+  PageSchemaRecord,
+  type PageSchemaRecordDocument,
+} from './schemas/page-schema-record.schema';
 
 @Injectable()
 export class PageContentService {
   constructor(
-    @InjectModel(PageData.name)
-    private readonly pageDataModel: Model<PageDataDocument>,
+    @InjectModel(PageSchemaRecord.name)
+    private readonly pageSchemaModel: Model<PageSchemaRecordDocument>,
+
+    @InjectModel(PageDraft.name)
+    private readonly pageDraftModel: Model<PageDraftDocument>,
+
+    @InjectModel(PagePublication.name)
+    private readonly pagePublicationModel: Model<PagePublicationDocument>,
 
     private readonly pagesService: PagesService,
 
@@ -35,9 +50,19 @@ export class PageContentService {
       pagePublicId,
     );
 
-    const pageData = await this.findPageData(page._id);
+    const [pageSchema, pageDraft, publication] =
+      await Promise.all([
+        this.findPageSchema(page._id),
+        this.findPageDraft(page._id),
+        this.findPagePublication(page._id),
+      ]);
 
-    return this.toResponse(pagePublicId, pageData);
+    return this.toResponse(
+      pagePublicId,
+      pageSchema,
+      pageDraft,
+      publication,
+    );
   }
 
   async saveDraft(
@@ -48,13 +73,33 @@ export class PageContentService {
       pagePublicId,
     );
 
-    const pageData = await this.findPageData(page._id);
+    const [pageSchema, pageDraft, publication] =
+      await Promise.all([
+        this.findPageSchema(page._id),
+        this.findPageDraft(page._id),
+        this.findPagePublication(page._id),
+      ]);
 
-    this.assertSchemaConfigured(pageData);
+    this.assertSchemaConfigured(pageSchema);
+
+    if (
+      pageDraft.schemaVersion !==
+      pageSchema.schemaVersion
+    ) {
+      throw new ConflictException({
+        code: 'DRAFT_SCHEMA_OUT_OF_SYNC',
+        message:
+          'The Draft is not synchronized with the current Schema. Reload and try again.',
+        details: {
+          schemaVersion: pageSchema.schemaVersion,
+          draftSchemaVersion: pageDraft.schemaVersion,
+        },
+      });
+    }
 
     const contentValidation =
       this.schemaEngineService.validateContent(
-        pageData.schemaDefinition,
+        pageSchema.schemaDefinition,
         requestDto.contentData,
       );
 
@@ -62,24 +107,25 @@ export class PageContentService {
       throw new BadRequestException({
         code: 'INVALID_CONTENT',
         message:
-          'The supplied content does not match the current page schema.',
+          'The supplied content does not match the current Page Schema.',
         details: contentValidation.errors,
       });
     }
 
     const draftUpdatedAt = new Date();
 
-    const updatedPageData = await this.pageDataModel
+    const updatedDraft = await this.pageDraftModel
       .findOneAndUpdate(
         {
-          _id: pageData._id,
-          schemaVersion: pageData.schemaVersion,
-          draftVersion: pageData.draftVersion,
+          _id: pageDraft._id,
+          schemaVersion: pageSchema.schemaVersion,
+          draftVersion: pageDraft.draftVersion,
         },
         {
           $set: {
             draftData: requestDto.contentData,
             draftUpdatedAt,
+            updatedBy: null,
           },
           $inc: {
             draftVersion: 1,
@@ -92,17 +138,19 @@ export class PageContentService {
       )
       .exec();
 
-    if (!updatedPageData) {
+    if (!updatedDraft) {
       throw new ConflictException({
         code: 'DRAFT_UPDATE_CONFLICT',
         message:
-          'The schema or draft changed during this request. Reload and try again.',
+          'The Schema or Draft changed during this request. Reload and try again.',
       });
     }
 
     return this.toResponse(
       pagePublicId,
-      updatedPageData,
+      pageSchema,
+      updatedDraft,
+      publication,
     );
   }
 
@@ -114,13 +162,33 @@ export class PageContentService {
       pagePublicId,
     );
 
-    const pageData = await this.findPageData(page._id);
+    const [pageSchema, pageDraft, publication] =
+      await Promise.all([
+        this.findPageSchema(page._id),
+        this.findPageDraft(page._id),
+        this.findPagePublication(page._id),
+      ]);
 
-    this.assertSchemaConfigured(pageData);
+    this.assertSchemaConfigured(pageSchema);
 
     if (
-      pageData.draftData === null ||
-      pageData.draftVersion < 1
+      pageDraft.schemaVersion !==
+      pageSchema.schemaVersion
+    ) {
+      throw new ConflictException({
+        code: 'DRAFT_SCHEMA_OUT_OF_SYNC',
+        message:
+          'The Draft is not synchronized with the current Schema.',
+        details: {
+          schemaVersion: pageSchema.schemaVersion,
+          draftSchemaVersion: pageDraft.schemaVersion,
+        },
+      });
+    }
+
+    if (
+      pageDraft.draftData === null ||
+      pageDraft.draftVersion < 1
     ) {
       throw new ConflictException({
         code: 'DRAFT_NOT_FOUND',
@@ -130,7 +198,7 @@ export class PageContentService {
 
     if (
       requestDto.expectedDraftVersion !==
-      pageData.draftVersion
+      pageDraft.draftVersion
     ) {
       throw new ConflictException({
         code: 'STALE_DRAFT_VERSION',
@@ -139,137 +207,252 @@ export class PageContentService {
         details: {
           expectedDraftVersion:
             requestDto.expectedDraftVersion,
-          currentDraftVersion: pageData.draftVersion,
+          currentDraftVersion: pageDraft.draftVersion,
         },
       });
     }
 
-    const publishedFromDraftVersion =
-      pageData.publishedFromDraftVersion ?? 0;
+    const publicationIsCurrent =
+      publication !== null &&
+      publication.publishedFromDraftVersion ===
+        pageDraft.draftVersion &&
+      publication.schemaHash === pageSchema.schemaHash &&
+      publication.visibility === page.visibility &&
+      publication.status === PublicationStatus.Published;
 
-    if (
-      pageData.publishedData !== null &&
-      publishedFromDraftVersion ===
-        pageData.draftVersion
-    ) {
-      return this.toResponse(pagePublicId, pageData);
+    if (publicationIsCurrent) {
+      return this.toResponse(
+        pagePublicId,
+        pageSchema,
+        pageDraft,
+        publication,
+      );
     }
 
     const contentValidation =
       this.schemaEngineService.validateContent(
-        pageData.schemaDefinition,
-        pageData.draftData,
+        pageSchema.schemaDefinition,
+        pageDraft.draftData,
       );
 
     if (!contentValidation.valid) {
       throw new ConflictException({
         code: 'DRAFT_NOT_PUBLISHABLE',
         message:
-          'The Draft no longer matches the current page schema.',
+          'The Draft no longer matches the current Page Schema.',
         details: contentValidation.errors,
       });
     }
 
     const publishedAt = new Date();
 
-    const updatedPageData = await this.pageDataModel
-      .findOneAndUpdate(
-        {
-          _id: pageData._id,
-          schemaVersion: pageData.schemaVersion,
-          draftVersion: pageData.draftVersion,
-          publishedVersion: pageData.publishedVersion,
-          publishedFromDraftVersion,
-        },
-        {
-          $set: {
-            publishedData: pageData.draftData,
-            publishedFromDraftVersion:
-              pageData.draftVersion,
-            publishedAt,
-          },
-          $inc: {
-            publishedVersion: 1,
-          },
-        },
-        {
-          new: true,
-          runValidators: true,
-        },
-      )
-      .exec();
+    let updatedPublication: PagePublicationDocument;
 
-    if (!updatedPageData) {
-      throw new ConflictException({
-        code: 'PUBLISH_CONFLICT',
-        message:
-          'The schema, Draft or published content changed during this request. Reload and try again.',
-      });
+    if (publication) {
+      const updated = await this.pagePublicationModel
+        .findOneAndUpdate(
+          {
+            _id: publication._id,
+            publishedVersion:
+              publication.publishedVersion,
+            publishedFromDraftVersion:
+              publication.publishedFromDraftVersion,
+            schemaHash: publication.schemaHash,
+          },
+          {
+            $set: {
+              pagePublicId: page.publicId,
+              projectId: page.projectId,
+              visibility: page.visibility,
+              status: PublicationStatus.Published,
+              publishedData: pageDraft.draftData,
+              publishedFromDraftVersion:
+                pageDraft.draftVersion,
+              schemaHash: pageSchema.schemaHash,
+              publishedAt,
+              publishedBy: null,
+            },
+            $inc: {
+              publishedVersion: 1,
+            },
+          },
+          {
+            new: true,
+            runValidators: true,
+          },
+        )
+        .exec();
+
+      if (!updated) {
+        throw new ConflictException({
+          code: 'PUBLISH_CONFLICT',
+          message:
+            'The Schema, Draft or Publication changed during this request. Reload and try again.',
+        });
+      }
+
+      updatedPublication = updated;
+    } else {
+      try {
+        updatedPublication =
+          await this.pagePublicationModel.create({
+            pageId: page._id,
+            pagePublicId: page.publicId,
+            projectId: page.projectId,
+            visibility: page.visibility,
+            status: PublicationStatus.Published,
+            publishedData: pageDraft.draftData,
+            publishedVersion: 1,
+            publishedFromDraftVersion:
+              pageDraft.draftVersion,
+            schemaHash: pageSchema.schemaHash,
+            publishedAt,
+            publishedBy: null,
+          });
+      } catch (error: unknown) {
+        if (this.isDuplicateKeyError(error)) {
+          throw new ConflictException({
+            code: 'PUBLISH_CONFLICT',
+            message:
+              'A Publication was created by another request. Reload and try again.',
+          });
+        }
+
+        throw error;
+      }
     }
 
     return this.toResponse(
       pagePublicId,
-      updatedPageData,
+      pageSchema,
+      pageDraft,
+      updatedPublication,
     );
   }
 
   private assertSchemaConfigured(
-    pageData: PageDataDocument,
-  ): asserts pageData is PageDataDocument & {
+    pageSchema: PageSchemaRecordDocument,
+  ): asserts pageSchema is PageSchemaRecordDocument & {
     schemaDefinition: Record<string, unknown>;
   } {
     if (
-      pageData.schemaDefinition === null ||
-      !pageData.schemaHash ||
-      pageData.schemaVersion < 1
+      pageSchema.schemaDefinition === null ||
+      !pageSchema.schemaHash ||
+      pageSchema.schemaVersion < 1
     ) {
       throw new ConflictException({
         code: 'SCHEMA_NOT_CONFIGURED',
         message:
-          'A valid page schema must be saved before content can be edited or published.',
+          'A valid Page Schema must be saved before content can be edited or published.',
       });
     }
   }
 
-  private async findPageData(
+  private async findPageSchema(
     pageId: Types.ObjectId,
-  ): Promise<PageDataDocument> {
-    const pageData = await this.pageDataModel
-      .findOne({ pageId })
+  ): Promise<PageSchemaRecordDocument> {
+    const pageSchema = await this.pageSchemaModel
+      .findOne({
+        pageId,
+      })
       .exec();
 
-    if (!pageData) {
+    if (!pageSchema) {
       throw new InternalServerErrorException({
-        code: 'PAGE_DATA_MISSING',
+        code: 'PAGE_SCHEMA_MISSING',
         message:
-          'The page data record is missing for this page.',
+          'The Page Schema record is missing for this Page.',
       });
     }
 
-    return pageData;
+    return pageSchema;
+  }
+
+  private async findPageDraft(
+    pageId: Types.ObjectId,
+  ): Promise<PageDraftDocument> {
+    const pageDraft = await this.pageDraftModel
+      .findOne({
+        pageId,
+      })
+      .exec();
+
+    if (!pageDraft) {
+      throw new InternalServerErrorException({
+        code: 'PAGE_DRAFT_MISSING',
+        message:
+          'The Page Draft record is missing for this Page.',
+      });
+    }
+
+    return pageDraft;
+  }
+
+  private async findPagePublication(
+    pageId: Types.ObjectId,
+  ): Promise<PagePublicationDocument | null> {
+    return this.pagePublicationModel
+      .findOne({
+        pageId,
+      })
+      .exec();
   }
 
   private toResponse(
     pagePublicId: string,
-    pageData: PageDataDocument,
+    pageSchema: PageSchemaRecordDocument,
+    pageDraft: PageDraftDocument,
+    publication: PagePublicationDocument | null,
   ): PageContentResponseDto {
     const publishedFromDraftVersion =
-      pageData.publishedFromDraftVersion ?? 0;
+      publication?.publishedFromDraftVersion ?? 0;
 
+    const latestUpdatedAt = new Date(
+      Math.max(
+        pageSchema.updatedAt.getTime(),
+        pageDraft.updatedAt.getTime(),
+        publication?.updatedAt.getTime() ?? 0,
+      ),
+    );
+
+    const hasDraft =
+      pageDraft.draftData !== null &&
+      pageDraft.draftVersion > 0;
+
+    const hasUnpublishedChanges =
+      hasDraft &&
+      (
+        publication === null ||
+        pageDraft.draftVersion >
+          publishedFromDraftVersion ||
+       publication.schemaHash !== pageSchema.schemaHash
+      );
     return {
       pageId: pagePublicId,
-      schemaVersion: pageData.schemaVersion,
-      schemaHash: pageData.schemaHash,
-      draftData: pageData.draftData,
-      draftVersion: pageData.draftVersion,
-      draftUpdatedAt: pageData.draftUpdatedAt ?? null,
-      publishedData: pageData.publishedData,
-      publishedVersion: pageData.publishedVersion,
+      schemaVersion: pageSchema.schemaVersion,
+      schemaHash: pageSchema.schemaHash,
+      draftData: pageDraft.draftData,
+      draftVersion: pageDraft.draftVersion,
+      draftUpdatedAt: pageDraft.draftUpdatedAt,
+      publishedData:
+        publication?.publishedData ?? null,
+      publishedVersion:
+        publication?.publishedVersion ?? 0,
       publishedFromDraftVersion,
-      publishedAt: pageData.publishedAt,
-      hasUnpublishedChanges:
-        pageData.draftVersion > publishedFromDraftVersion,
-      updatedAt: pageData.updatedAt,
+      publishedAt: publication?.publishedAt ?? null,
+      hasUnpublishedChanges,
+      updatedAt: latestUpdatedAt,
     };
+  }
+
+  private isDuplicateKeyError(
+    error: unknown,
+  ): error is { code: number } {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code?: number }).code === 11000
+    );
   }
 }

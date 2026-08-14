@@ -16,15 +16,29 @@ import { PageSchemaRequestDto } from './dto/page-schema-request.dto';
 import { PageSchemaResponseDto } from './dto/page-schema-response.dto';
 import { PagesService } from './pages.service';
 import {
-  PageData,
-  type PageDataDocument,
-} from './schemas/page-data.schema';
+  PageDraft,
+  type PageDraftDocument,
+} from './schemas/page-draft.schema';
+import {
+  PagePublication,
+  type PagePublicationDocument,
+} from './schemas/page-publication.schema';
+import {
+  PageSchemaRecord,
+  type PageSchemaRecordDocument,
+} from './schemas/page-schema-record.schema';
 
 @Injectable()
 export class PageSchemaService {
   constructor(
-    @InjectModel(PageData.name)
-    private readonly pageDataModel: Model<PageDataDocument>,
+    @InjectModel(PageSchemaRecord.name)
+    private readonly pageSchemaModel: Model<PageSchemaRecordDocument>,
+
+    @InjectModel(PageDraft.name)
+    private readonly pageDraftModel: Model<PageDraftDocument>,
+
+    @InjectModel(PagePublication.name)
+    private readonly pagePublicationModel: Model<PagePublicationDocument>,
 
     private readonly pagesService: PagesService,
 
@@ -51,9 +65,14 @@ export class PageSchemaService {
       pagePublicId,
     );
 
-    const pageData = await this.findPageData(page._id);
+    const pageSchema = await this.findPageSchema(
+      page._id,
+    );
 
-    return this.toResponse(pagePublicId, pageData);
+    return this.toResponse(
+      pagePublicId,
+      pageSchema,
+    );
   }
 
   async saveSchema(
@@ -80,30 +99,71 @@ export class PageSchemaService {
       });
     }
 
-    const pageData = await this.findPageData(page._id);
+    const [
+      currentSchema,
+      currentDraft,
+      currentPublication,
+    ] = await Promise.all([
+      this.findPageSchema(page._id),
+      this.findPageDraft(page._id),
+      this.findPagePublication(page._id),
+    ]);
 
     if (
-      pageData.schemaDefinition !== null &&
-      pageData.schemaHash === schemaValidation.schemaHash
+      currentDraft.schemaVersion !==
+      currentSchema.schemaVersion
     ) {
-      return this.toResponse(pagePublicId, pageData);
+      throw new ConflictException({
+        code: 'DRAFT_SCHEMA_OUT_OF_SYNC',
+        message:
+          'The Draft is not synchronized with the current Schema.',
+        details: {
+          schemaVersion: currentSchema.schemaVersion,
+          draftSchemaVersion:
+            currentDraft.schemaVersion,
+        },
+      });
+    }
+
+    if (
+      currentSchema.schemaDefinition !== null &&
+      currentSchema.schemaHash ===
+        schemaValidation.schemaHash
+    ) {
+      return this.toResponse(
+        pagePublicId,
+        currentSchema,
+      );
     }
 
     this.assertContentCompatibility(
       requestDto.schemaDefinition,
-      pageData,
+      currentDraft,
+      currentPublication,
     );
 
-    const updatedPageData = await this.pageDataModel
+    const previousSchemaDefinition =
+      currentSchema.schemaDefinition;
+
+    const previousSchemaHash =
+      currentSchema.schemaHash;
+
+    const previousSchemaVersion =
+      currentSchema.schemaVersion;
+
+    const updatedSchema = await this.pageSchemaModel
       .findOneAndUpdate(
         {
-          _id: pageData._id,
-          schemaVersion: pageData.schemaVersion,
+          _id: currentSchema._id,
+          schemaVersion: previousSchemaVersion,
         },
         {
           $set: {
-            schemaDefinition: requestDto.schemaDefinition,
-            schemaHash: schemaValidation.schemaHash,
+            schemaDefinition:
+              requestDto.schemaDefinition,
+            schemaHash:
+              schemaValidation.schemaHash,
+            updatedBy: null,
           },
           $inc: {
             schemaVersion: 1,
@@ -116,34 +176,69 @@ export class PageSchemaService {
       )
       .exec();
 
-    if (!updatedPageData) {
+    if (!updatedSchema) {
       throw new ConflictException({
         code: 'SCHEMA_UPDATE_CONFLICT',
         message:
-          'The schema was modified by another request. Reload and try again.',
+          'The Schema was modified by another request. Reload and try again.',
+      });
+    }
+
+    const draftUpdateResult =
+      await this.pageDraftModel
+        .updateOne(
+          {
+            _id: currentDraft._id,
+            schemaVersion: previousSchemaVersion,
+          },
+          {
+            $set: {
+              schemaVersion:
+                updatedSchema.schemaVersion,
+            },
+          },
+          {
+            runValidators: true,
+          },
+        )
+        .exec();
+
+    if (draftUpdateResult.modifiedCount !== 1) {
+      await this.rollbackSchemaUpdate(
+        updatedSchema,
+        previousSchemaDefinition,
+        previousSchemaHash,
+        previousSchemaVersion,
+      );
+
+      throw new ConflictException({
+        code: 'DRAFT_SCHEMA_SYNC_CONFLICT',
+        message:
+          'The Draft changed while updating the Schema. The Schema update was rolled back.',
       });
     }
 
     return this.toResponse(
       pagePublicId,
-      updatedPageData,
+      updatedSchema,
     );
   }
 
   private assertContentCompatibility(
     schemaDefinition: Record<string, unknown>,
-    pageData: PageDataDocument,
+    pageDraft: PageDraftDocument,
+    publication: PagePublicationDocument | null,
   ): void {
     const incompatibleContent: Record<
       string,
       ValidationIssue[]
     > = {};
 
-    if (pageData.draftData !== null) {
+    if (pageDraft.draftData !== null) {
       const draftValidation =
         this.schemaEngineService.validateContent(
           schemaDefinition,
-          pageData.draftData,
+          pageDraft.draftData,
         );
 
       if (!draftValidation.valid) {
@@ -152,11 +247,11 @@ export class PageSchemaService {
       }
     }
 
-    if (pageData.publishedData !== null) {
+    if (publication !== null) {
       const publishedValidation =
         this.schemaEngineService.validateContent(
           schemaDefinition,
-          pageData.publishedData,
+          publication.publishedData,
         );
 
       if (!publishedValidation.valid) {
@@ -169,40 +264,116 @@ export class PageSchemaService {
       throw new ConflictException({
         code: 'SCHEMA_BREAKS_EXISTING_CONTENT',
         message:
-          'The new schema is incompatible with existing content.',
+          'The new Schema is incompatible with existing content.',
         details: incompatibleContent,
       });
     }
   }
 
-  private async findPageData(
+  private async findPageSchema(
     pageId: Types.ObjectId,
-  ): Promise<PageDataDocument> {
-    const pageData = await this.pageDataModel
-      .findOne({ pageId })
+  ): Promise<PageSchemaRecordDocument> {
+    const pageSchema = await this.pageSchemaModel
+      .findOne({
+        pageId,
+      })
       .exec();
 
-    if (!pageData) {
+    if (!pageSchema) {
       throw new InternalServerErrorException({
-        code: 'PAGE_DATA_MISSING',
+        code: 'PAGE_SCHEMA_MISSING',
         message:
-          'The page data record is missing for this page.',
+          'The Page Schema record is missing for this Page.',
       });
     }
 
-    return pageData;
+    return pageSchema;
+  }
+
+  private async findPageDraft(
+    pageId: Types.ObjectId,
+  ): Promise<PageDraftDocument> {
+    const pageDraft = await this.pageDraftModel
+      .findOne({
+        pageId,
+      })
+      .exec();
+
+    if (!pageDraft) {
+      throw new InternalServerErrorException({
+        code: 'PAGE_DRAFT_MISSING',
+        message:
+          'The Page Draft record is missing for this Page.',
+      });
+    }
+
+    return pageDraft;
+  }
+
+  private async findPagePublication(
+    pageId: Types.ObjectId,
+  ): Promise<PagePublicationDocument | null> {
+    return this.pagePublicationModel
+      .findOne({
+        pageId,
+      })
+      .exec();
+  }
+
+  private async rollbackSchemaUpdate(
+    updatedSchema: PageSchemaRecordDocument,
+    previousSchemaDefinition:
+      | Record<string, unknown>
+      | null,
+    previousSchemaHash: string,
+    previousSchemaVersion: number,
+  ): Promise<void> {
+    const rollbackResult =
+      await this.pageSchemaModel
+        .updateOne(
+          {
+            _id: updatedSchema._id,
+            schemaVersion:
+              updatedSchema.schemaVersion,
+          },
+          {
+            $set: {
+              schemaDefinition:
+                previousSchemaDefinition,
+              schemaHash: previousSchemaHash,
+              schemaVersion:
+                previousSchemaVersion,
+              updatedBy: null,
+            },
+          },
+          {
+            runValidators: true,
+          },
+        )
+        .exec();
+
+    if (rollbackResult.modifiedCount !== 1) {
+      throw new InternalServerErrorException({
+        code: 'SCHEMA_ROLLBACK_FAILED',
+        message:
+          'The Schema update could not be rolled back safely.',
+      });
+    }
   }
 
   private toResponse(
     pagePublicId: string,
-    pageData: PageDataDocument,
+    pageSchema: PageSchemaRecordDocument,
   ): PageSchemaResponseDto {
     return {
       pageId: pagePublicId,
-      schemaDefinition: pageData.schemaDefinition,
-      schemaVersion: pageData.schemaVersion,
-      schemaHash: pageData.schemaHash || null,
-      updatedAt: pageData.updatedAt,
+      schemaDefinition:
+        pageSchema.schemaDefinition,
+      schemaVersion:
+        pageSchema.schemaVersion,
+      schemaHash:
+        pageSchema.schemaHash || null,
+      updatedAt: pageSchema.updatedAt,
     };
   }
 }
