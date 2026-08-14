@@ -8,12 +8,18 @@ import { HealthModule } from '../modules/health/health.module';
 import { PagesModule } from '../modules/pages/pages.module';
 import { ProjectsModule } from '../modules/projects/projects.module';
 import { SchemaEngineModule } from '../modules/schema-engine/schema-engine.module';
+import { envValidationSchema } from '../config/env.validation';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['apps/api/.env', '.env'],
+      validationSchema: envValidationSchema,
+      validationOptions: {
+        abortEarly: false,
+        allowUnknown: true,
+      },
     }),
 
     MongooseModule.forRootAsync({
