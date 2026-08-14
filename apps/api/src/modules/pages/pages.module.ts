@@ -18,6 +18,19 @@ import {
   PageSchema,
 } from './schemas/page.schema';
 
+import {
+  PageDraft,
+  PageDraftSchema,
+} from './schemas/page-draft.schema';
+import {
+  PagePublication,
+  PagePublicationSchema,
+} from './schemas/page-publication.schema';
+import {
+  PageSchemaRecord,
+  PageSchemaRecordSchema,
+} from './schemas/page-schema-record.schema';
+
 @Module({
   imports: [
     ProjectsModule,
@@ -31,6 +44,18 @@ import {
         name: PageData.name,
         schema: PageDataSchema,
       },
+      {
+        name: PageSchemaRecord.name,
+        schema: PageSchemaRecordSchema,
+      },
+      {
+        name: PageDraft.name,
+        schema: PageDraftSchema,
+      },
+      {
+        name: PagePublication.name,
+        schema: PagePublicationSchema,
+    },
     ]),
   ],
   controllers: [
