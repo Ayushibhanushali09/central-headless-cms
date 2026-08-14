@@ -9,6 +9,7 @@ import { PagesModule } from '../modules/pages/pages.module';
 import { ProjectsModule } from '../modules/projects/projects.module';
 import { SchemaEngineModule } from '../modules/schema-engine/schema-engine.module';
 import { envValidationSchema } from '../config/env.validation';
+import { AuthModule } from '../modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { envValidationSchema } from '../config/env.validation';
     PagesModule,
     DeliveryModule,
     HealthModule,
+    AuthModule,
   ],
 })
 export class AppModule {}
