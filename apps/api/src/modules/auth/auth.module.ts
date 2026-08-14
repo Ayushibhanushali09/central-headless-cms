@@ -8,10 +8,12 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtStrategy } from './jwt.strategy';
+import { RefreshSessionsModule } from './sessions/refresh-sessions.module';
 
 @Module({
   imports: [
     UsersModule,
+    RefreshSessionsModule,
     PassportModule.register({
       defaultStrategy: 'jwt',
     }),
