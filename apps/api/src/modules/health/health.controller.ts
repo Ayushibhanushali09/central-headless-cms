@@ -1,9 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import type { Connection } from 'mongoose';
+import { Public } from '../auth/public.decorator';
 
 import { RedisService } from '../../infrastructure/redis/redis.service';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(

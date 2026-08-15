@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import type { Model } from 'mongoose';
+import type {
+  Model,
+  Types,
+} from 'mongoose';
 
 import {
   User,
@@ -49,6 +52,14 @@ export class UsersRepository {
   ): Promise<UserDocument | null> {
     return this.userModel
       .findOne({ publicId })
+      .exec();
+  }
+
+    findByInternalId(
+    userId: Types.ObjectId,
+  ): Promise<UserDocument | null> {
+    return this.userModel
+      .findOne({ _id: userId })
       .exec();
   }
 }

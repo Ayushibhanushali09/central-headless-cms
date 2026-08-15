@@ -6,7 +6,9 @@ import {
 } from '@nestjs/common';
 
 import { DeliveryService } from './delivery.service';
+import { Public } from '../auth/public.decorator';
 
+@Public()
 @Controller('v1/content')
 export class DeliveryController {
   constructor(

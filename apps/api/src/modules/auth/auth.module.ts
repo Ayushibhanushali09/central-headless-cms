@@ -9,6 +9,7 @@ import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtStrategy } from './jwt.strategy';
 import { RefreshSessionsModule } from './sessions/refresh-sessions.module';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -32,6 +33,10 @@ import { RefreshSessionsModule } from './sessions/refresh-sessions.module';
     AuthService,
     JwtStrategy,
     JwtAuthGuard,
+    {
+    provide: APP_GUARD,
+    useExisting: JwtAuthGuard,
+    },
   ],
   exports: [
     AuthService,

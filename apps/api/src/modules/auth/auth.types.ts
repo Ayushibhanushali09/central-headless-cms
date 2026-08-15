@@ -19,3 +19,8 @@ export interface LoginResponse {
   expiresIn: number;
   user: AuthenticatedUser;
 }
+
+export interface AuthSessionResult extends LoginResponse {
+  refreshToken: string;
+  refreshTokenExpiresAt: Date;
+}

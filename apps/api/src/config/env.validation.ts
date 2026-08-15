@@ -57,6 +57,23 @@ export const envValidationSchema = Joi.object({
     .max(90)
     .default(7),
 
+  AUTH_REFRESH_COOKIE_NAME: Joi.string()
+    .pattern(/^[A-Za-z0-9_-]+$/)
+    .default('cms_refresh_token'),
+
+  AUTH_COOKIE_SECURE: Joi.boolean()
+    .truthy('true')
+    .falsy('false')
+    .default(false),
+
+  AUTH_COOKIE_SAME_SITE: Joi.string()
+    .valid('lax', 'strict', 'none')
+    .default('lax'),
+
+  AUTH_COOKIE_DOMAIN: Joi.string()
+    .allow('')
+    .optional(),
+
   ACCESS_KEY_PEPPER: Joi.string()
     .min(32)
     .required(),

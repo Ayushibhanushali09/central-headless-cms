@@ -50,6 +50,7 @@
     "@swc/core": "~1.15.5",
     "@swc/helpers": "~0.5.18",
     "@types/cookie-parser": "^1.4.10",
+    "@types/express": "^5.0.6",
     "@types/jest": "~30.0.0",
     "@types/node": "^22.0.0",
     "@types/passport-jwt": "^4.0.1",

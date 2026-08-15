@@ -8,6 +8,7 @@ import { ulid } from 'ulid';
 import { UserResponseDto } from './dto/user-response.dto';
 import type { UserDocument } from './schemas/user.schema';
 import { UsersRepository } from './users.repository';
+import type { Types } from 'mongoose';
 
 export interface CreateUserInput {
   name: string;
@@ -85,6 +86,12 @@ export class UsersService {
     publicId: string,
   ): Promise<UserDocument | null> {
     return this.usersRepository.findByPublicId(publicId);
+  }
+
+    findByInternalId(
+    userId: Types.ObjectId,
+  ): Promise<UserDocument | null> {
+    return this.usersRepository.findByInternalId(userId);
   }
 
   toResponse(user: UserDocument): UserResponseDto {
