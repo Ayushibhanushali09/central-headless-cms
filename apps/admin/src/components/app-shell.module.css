@@ -191,3 +191,74 @@
 .skipLink:focus {
   transform: translateY(0);
 }
+
+.navItem {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 13px;
+  border-radius: 10px;
+  color: #7e8da8;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+.userAvatar {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #253552;
+  color: white;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.userDetails {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+
+.userDetails strong,
+.userDetails small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userDetails strong {
+  color: #dce6f7;
+  font-size: 11px;
+}
+
+.userDetails small {
+  color: #8290aa;
+  font-size: 9px;
+}
+
+.logoutButton {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #a9b5c9;
+  cursor: pointer;
+  font-size: 17px;
+}
+
+.logoutButton:hover {
+  background: #26334b;
+  color: white;
+}
+
+.logoutButton:disabled {
+  cursor: wait;
+  opacity: 0.5;
+}

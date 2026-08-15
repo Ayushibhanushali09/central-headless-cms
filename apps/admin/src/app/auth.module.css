@@ -1,0 +1,210 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.85fr) minmax(420px, 1.15fr);
+  background: #f4f7fb;
+}
+
+.brandPanel {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 48px;
+  background:
+    radial-gradient(circle at 20% 20%, rgb(92 111 241 / 34%), transparent 30%),
+    linear-gradient(145deg, #101a2e, #172744);
+  color: white;
+}
+
+.brandPanel::after {
+  position: absolute;
+  width: 360px;
+  height: 360px;
+  right: -170px;
+  bottom: -180px;
+  border: 1px solid rgb(255 255 255 / 12%);
+  border-radius: 50%;
+  content: '';
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #596bef;
+  font-weight: 850;
+}
+
+.brand strong,
+.brand small {
+  display: block;
+}
+
+.brand small {
+  margin-top: 3px;
+  color: #94a2ba;
+  font-size: 11px;
+}
+
+.brandCopy {
+  position: relative;
+  z-index: 1;
+  max-width: 520px;
+}
+
+.brandCopy p:first-child {
+  color: #91a1ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.brandCopy h1 {
+  margin: 12px 0;
+  font-size: clamp(34px, 5vw, 58px);
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+}
+
+.brandCopy p:last-child {
+  color: #b8c3d5;
+  line-height: 1.7;
+}
+
+.formSide {
+  display: grid;
+  place-items: center;
+  padding: 36px;
+}
+
+.card {
+  width: min(100%, 480px);
+  padding: 34px;
+  border: 1px solid #dfe5ee;
+  border-radius: 18px;
+  background: white;
+  box-shadow: 0 22px 65px rgb(24 39 72 / 10%);
+}
+
+.card h2 {
+  margin: 0 0 8px;
+  color: #1e2a41;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.card > p {
+  margin: 0 0 26px;
+  color: #7b879b;
+  font-size: 13px;
+}
+
+.form {
+  display: grid;
+  gap: 16px;
+}
+
+.form label {
+  display: grid;
+  gap: 7px;
+  color: #3c4960;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.form input {
+  width: 100%;
+  height: 45px;
+  padding: 0 13px;
+  border: 1px solid #d6deea;
+  border-radius: 9px;
+  outline: none;
+  background: #fbfcfe;
+  color: #1f2b40;
+}
+
+.form input:focus {
+  border-color: #6878ed;
+  box-shadow: 0 0 0 3px rgb(104 120 237 / 12%);
+}
+
+.submitButton {
+  min-height: 45px;
+  margin-top: 4px;
+  border: 0;
+  border-radius: 9px;
+  background: #4f61e8;
+  color: white;
+  cursor: pointer;
+  font-weight: 800;
+  box-shadow: 0 8px 22px rgb(79 97 232 / 20%);
+}
+
+.submitButton:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.error {
+  padding: 11px 12px;
+  border: 1px solid #ffc9cc;
+  border-radius: 9px;
+  background: #fff3f3;
+  color: #a93038;
+  font-size: 12px;
+}
+
+.switchText {
+  margin-top: 20px !important;
+  text-align: center;
+}
+
+.switchText a {
+  color: #4f61e8;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.sessionLoading {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: #f4f7fb;
+  color: #6f7c92;
+}
+
+@media (max-width: 860px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .brandPanel {
+    min-height: 260px;
+    padding: 30px;
+  }
+
+  .brandCopy h1 {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 520px) {
+  .formSide {
+    padding: 18px;
+  }
+
+  .card {
+    padding: 25px 20px;
+  }
+}
