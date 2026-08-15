@@ -1,27 +1,30 @@
+import {
+  clearAccessToken,
+  getAccessToken,
+  refreshAccessToken,
+  setAccessToken,
+} from './auth-session';
+import {
+  getControlApiUrl,
+  getDeliveryApiUrl,
+} from './environment';
 import type {
+  AuthenticatedUser,
   CmsPage,
   CreatePageInput,
   CreateProjectInput,
+  LoginInput,
+  LoginResponse,
   PageContentState,
   PageSchemaInput,
   PageSchemaState,
   Project,
+  PublishContentInput,
+  RegisteredUser,
+  RegisterInput,
   SaveDraftInput,
   SchemaValidationResult,
-  PublishContentInput,
 } from './types';
-
-const controlApiUrl =
-  process.env.NEXT_PUBLIC_CONTROL_API_URL?.replace(
-    /\/$/,
-    '',
-  );
-
-const deliveryApiUrl =
-  process.env.NEXT_PUBLIC_DELIVERY_API_URL?.replace(
-    /\/$/,
-    '',
-  );
 
 interface ErrorPayload {
   code?: string;
@@ -32,6 +35,11 @@ interface ErrorPayload {
     message?: string;
     details?: unknown;
   };
+}
+
+interface RequestOptions {
+  retryAuth?: boolean;
+  includeAuth?: boolean;
 }
 
 export class ApiError extends Error {
@@ -46,23 +54,53 @@ export class ApiError extends Error {
   }
 }
 
-function requireEnvironment(
-  value: string | undefined,
-  name: string,
-): string {
-  if (!value) {
-    throw new Error(
-      `${name} is missing. Check apps/admin/.env.local.`,
-    );
+function controlUrl(path: string): string {
+  return `${getControlApiUrl()}${path}`;
+}
+
+async function parsePayload<T>(
+  response: Response,
+): Promise<ErrorPayload | T | null> {
+  const contentType =
+    response.headers.get('content-type') ?? '';
+
+  if (!contentType.includes('application/json')) {
+    return null;
   }
 
-  return value;
+  return response.json().catch(() => null) as Promise<
+    ErrorPayload | T | null
+  >;
+}
+
+function createApiError(
+  response: Response,
+  payload: ErrorPayload | null,
+): ApiError {
+  const message = Array.isArray(payload?.message)
+    ? payload.message.join(', ')
+    : payload?.error?.message ??
+      payload?.message ??
+      `Request failed with status ${response.status}`;
+
+  return new ApiError(
+    message,
+    response.status,
+    payload?.error?.code ?? payload?.code,
+    payload?.error?.details ?? payload?.details,
+  );
 }
 
 async function request<T>(
   url: string,
   init?: RequestInit,
+  options: RequestOptions = {},
 ): Promise<T> {
+  const {
+    retryAuth = true,
+    includeAuth = true,
+  } = options;
+
   const headers = new Headers(init?.headers);
 
   headers.set('Accept', 'application/json');
@@ -71,48 +109,107 @@ async function request<T>(
     headers.set('Content-Type', 'application/json');
   }
 
+  const token = getAccessToken();
+
+  if (includeAuth && token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+
   const response = await fetch(url, {
     ...init,
+    headers,
     cache: 'no-store',
     credentials: 'include',
-    headers,
   });
 
-  const contentType =
-    response.headers.get('content-type') ?? '';
+  if (
+    response.status === 401 &&
+    retryAuth &&
+    includeAuth
+  ) {
+    const refreshed = await refreshAccessToken();
 
-  const payload = (
-    contentType.includes('application/json')
-      ? await response.json().catch(() => null)
-      : null
-  ) as ErrorPayload | T | null;
+    if (refreshed) {
+      return request<T>(url, init, {
+        retryAuth: false,
+        includeAuth: true,
+      });
+    }
+  }
+
+  const payload = await parsePayload<T>(response);
 
   if (!response.ok) {
-    const errorPayload = payload as ErrorPayload | null;
-
-    const message = Array.isArray(errorPayload?.message)
-      ? errorPayload.message.join(', ')
-      : errorPayload?.error?.message ??
-        errorPayload?.message ??
-        `Request failed with status ${response.status}`;
-
-    throw new ApiError(
-      message,
-      response.status,
-      errorPayload?.error?.code ?? errorPayload?.code,
-      errorPayload?.error?.details ??
-        errorPayload?.details,
+    throw createApiError(
+      response,
+      payload as ErrorPayload | null,
     );
   }
 
   return payload as T;
 }
 
-function controlUrl(path: string): string {
-  return `${requireEnvironment(
-    controlApiUrl,
-    'NEXT_PUBLIC_CONTROL_API_URL',
-  )}${path}`;
+export async function login(
+  input: LoginInput,
+): Promise<LoginResponse> {
+  const session = await request<LoginResponse>(
+    controlUrl('/auth/login'),
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+    {
+      retryAuth: false,
+      includeAuth: false,
+    },
+  );
+
+  setAccessToken(session.accessToken);
+
+  return session;
+}
+
+export function register(
+  input: RegisterInput,
+): Promise<RegisteredUser> {
+  return request<RegisteredUser>(
+    controlUrl('/auth/register'),
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+    {
+      retryAuth: false,
+      includeAuth: false,
+    },
+  );
+}
+
+export async function restoreSession(): Promise<LoginResponse | null> {
+  return refreshAccessToken();
+}
+
+export function getCurrentUser(): Promise<AuthenticatedUser> {
+  return request<AuthenticatedUser>(
+    controlUrl('/auth/me'),
+  );
+}
+
+export async function logout(): Promise<void> {
+  try {
+    await request<void>(
+      controlUrl('/auth/logout'),
+      {
+        method: 'POST',
+      },
+      {
+        retryAuth: false,
+        includeAuth: false,
+      },
+    );
+  } finally {
+    clearAccessToken();
+  }
 }
 
 export function getProjects(): Promise<Project[]> {
@@ -168,10 +265,20 @@ export function createPage(
 export function getDeliveryUrl(
   pageId: string,
 ): string {
-  return `${requireEnvironment(
-    deliveryApiUrl,
-    'NEXT_PUBLIC_DELIVERY_API_URL',
-  )}/content/${pageId}`;
+  return `${getDeliveryApiUrl()}/content/${pageId}`;
+}
+
+export function getPublishedContent(
+  pageId: string,
+): Promise<Record<string, unknown>> {
+  return request<Record<string, unknown>>(
+    getDeliveryUrl(pageId),
+    undefined,
+    {
+      retryAuth: false,
+      includeAuth: false,
+    },
+  );
 }
 
 export function getPageSchema(
@@ -239,13 +346,5 @@ export function publishPageContent(
       method: 'POST',
       body: JSON.stringify(input),
     },
-  );
-}
-
-export function getPublishedContent(
-  pageId: string,
-): Promise<Record<string, unknown>> {
-  return request<Record<string, unknown>>(
-    getDeliveryUrl(pageId),
   );
 }
