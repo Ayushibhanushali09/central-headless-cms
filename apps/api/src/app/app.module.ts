@@ -10,6 +10,7 @@ import { ProjectsModule } from '../modules/projects/projects.module';
 import { SchemaEngineModule } from '../modules/schema-engine/schema-engine.module';
 import { envValidationSchema } from '../config/env.validation';
 import { AuthModule } from '../modules/auth/auth.module';
+import { ProjectMembersModule } from '../modules/project-members/project-members.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { AuthModule } from '../modules/auth/auth.module';
     DeliveryModule,
     HealthModule,
     AuthModule,
+    ProjectMembersModule,
   ],
 })
 export class AppModule {}

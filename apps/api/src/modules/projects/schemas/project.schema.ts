@@ -1,5 +1,12 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import type { HydratedDocument } from 'mongoose';
+import { User } from '../../users/schemas/user.schema';
+
+import {
+  Schema as MongooseSchema,
+  Types,
+} from 'mongoose';
+
 
 export enum ProjectStatus {
   Active = 'active',
@@ -31,6 +38,13 @@ export class Project {
     default: '',
   })
   description!: string;
+
+    @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: User.name,
+    required: true,
+  })
+  createdBy!: Types.ObjectId;
 
   @Prop({
     required: true,

@@ -1,6 +1,15 @@
+import type { AuthenticatedUser } from '../auth/auth.types';
+import { UserStatus } from '../users/schemas/user.schema';
 import { ProjectsController } from './projects.controller';
 import { ProjectsService } from './projects.service';
 import { ProjectStatus } from './schemas/project.schema';
+
+const authenticatedUser: AuthenticatedUser = {
+  id: 'usr_01JTESTUSER000000000000000',
+  name: 'Test User',
+  email: 'test@example.com',
+  status: UserStatus.Active,
+};
 
 const projectResponse = {
   id: 'prj_01JTESTPROJECT000000000000',
@@ -14,8 +23,8 @@ const projectResponse = {
 describe('ProjectsController', () => {
   const projectsService = {
     create: jest.fn(),
-    findAll: jest.fn(),
-    findOne: jest.fn(),
+    findAllForUser: jest.fn(),
+    findOneForUser: jest.fn(),
   } as unknown as ProjectsService;
 
   let controller: ProjectsController;
@@ -25,7 +34,7 @@ describe('ProjectsController', () => {
     controller = new ProjectsController(projectsService);
   });
 
-  it('delegates project creation to ProjectsService', async () => {
+  it('delegates Project creation with current User ID', async () => {
     const dto = {
       name: 'Demo Website',
       description: 'Test project',
@@ -35,34 +44,47 @@ describe('ProjectsController', () => {
       .spyOn(projectsService, 'create')
       .mockResolvedValue(projectResponse);
 
-    await expect(controller.create(dto)).resolves.toEqual(
-      projectResponse,
-    );
+    await expect(
+      controller.create(dto, authenticatedUser),
+    ).resolves.toEqual(projectResponse);
 
-    expect(projectsService.create).toHaveBeenCalledWith(dto);
+    expect(projectsService.create).toHaveBeenCalledWith(
+      dto,
+      authenticatedUser.id,
+    );
   });
 
-  it('delegates project listing to ProjectsService', async () => {
+  it('delegates User-scoped Project listing', async () => {
     jest
-      .spyOn(projectsService, 'findAll')
+      .spyOn(projectsService, 'findAllForUser')
       .mockResolvedValue([projectResponse]);
 
-    await expect(controller.findAll()).resolves.toEqual([
-      projectResponse,
-    ]);
+    await expect(
+      controller.findAll(authenticatedUser),
+    ).resolves.toEqual([projectResponse]);
+
+    expect(
+      projectsService.findAllForUser,
+    ).toHaveBeenCalledWith(authenticatedUser.id);
   });
 
-  it('delegates single-project lookup to ProjectsService', async () => {
+  it('delegates membership-protected Project lookup', async () => {
     jest
-      .spyOn(projectsService, 'findOne')
+      .spyOn(projectsService, 'findOneForUser')
       .mockResolvedValue(projectResponse);
 
     await expect(
-      controller.findOne(projectResponse.id),
+      controller.findOne(
+        projectResponse.id,
+        authenticatedUser,
+      ),
     ).resolves.toEqual(projectResponse);
 
-    expect(projectsService.findOne).toHaveBeenCalledWith(
+    expect(
+      projectsService.findOneForUser,
+    ).toHaveBeenCalledWith(
       projectResponse.id,
+      authenticatedUser.id,
     );
   });
 });

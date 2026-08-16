@@ -6,6 +6,8 @@ import {
   Post,
 } from '@nestjs/common';
 
+import type { AuthenticatedUser } from '../auth/auth.types';
+import { CurrentUser } from '../auth/current-user.decorator';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsService } from './projects.service';
 
@@ -16,17 +18,33 @@ export class ProjectsController {
   ) {}
 
   @Post()
-  create(@Body() createProjectDto: CreateProjectDto) {
-    return this.projectsService.create(createProjectDto);
+  create(
+    @Body() createProjectDto: CreateProjectDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.projectsService.create(
+      createProjectDto,
+      user.id,
+    );
   }
 
   @Get()
-  findAll() {
-    return this.projectsService.findAll();
+  findAll(
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.projectsService.findAllForUser(
+      user.id,
+    );
   }
 
   @Get(':projectId')
-  findOne(@Param('projectId') projectId: string) {
-    return this.projectsService.findOne(projectId);
+  findOne(
+    @Param('projectId') projectId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.projectsService.findOneForUser(
+      projectId,
+      user.id,
+    );
   }
 }
