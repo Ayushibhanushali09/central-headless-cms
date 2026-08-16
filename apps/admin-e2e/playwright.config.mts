@@ -12,6 +12,10 @@ const baseURL =
   process.env['BASE_URL'] ??
   'http://localhost:3000';
 
+const apiBaseURL =
+  process.env['E2E_API_URL'] ??
+  'http://localhost:4000';
+
 const projectRoot = join(
   workspaceRoot,
   'apps',
@@ -32,13 +36,22 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
 
-  webServer: {
-    command: 'pnpm dev:admin',
-    url: baseURL,
-    reuseExistingServer: !isCI,
-    cwd: workspaceRoot,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: 'pnpm dev:api',
+      url: `${apiBaseURL}/api/v1/health`,
+      reuseExistingServer: !isCI,
+      cwd: workspaceRoot,
+      timeout: 120_000,
+    },
+    {
+      command: 'pnpm dev:admin',
+      url: baseURL,
+      reuseExistingServer: !isCI,
+      cwd: workspaceRoot,
+      timeout: 120_000,
+    },
+  ],
 
   projects: [
     {

@@ -1,4 +1,8 @@
-import { expect, test } from '@playwright/test';
+import {
+  expect,
+  test,
+  type Page,
+} from '@playwright/test';
 
 const projectName =
   process.env.E2E_PROJECT_NAME ?? 'Valueye Website';
@@ -10,6 +14,31 @@ const pageId = process.env.E2E_PAGE_ID;
 
 const apiBaseUrl =
   process.env.E2E_API_URL ?? 'http://localhost:4000';
+
+const userEmail = process.env.E2E_USER_EMAIL;
+const userPassword = process.env.E2E_USER_PASSWORD;
+
+async function authenticatePage(
+  page: Page,
+): Promise<void> {
+  if (!userEmail || !userPassword) {
+    throw new Error(
+      'E2E_USER_EMAIL and E2E_USER_PASSWORD are required.',
+    );
+  }
+
+  const response = await page.request.post(
+    `${apiBaseUrl}/api/v1/auth/login`,
+    {
+      data: {
+        email: userEmail,
+        password: userPassword,
+      },
+    },
+  );
+
+  expect(response.ok()).toBeTruthy();
+}
 
 test.describe.configure({
   mode: 'serial',
@@ -44,6 +73,8 @@ test.describe('Central CMS approved workflow', () => {
   test('Projects Dashboard loads live data', async ({
     page,
   }) => {
+    await authenticatePage(page);
+
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
     });
@@ -98,6 +129,8 @@ test.describe('Central CMS approved workflow', () => {
   test('Project opens its real Pages list', async ({
     page,
   }) => {
+    await authenticatePage(page);
+
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
     });
@@ -141,6 +174,8 @@ test.describe('Central CMS approved workflow', () => {
   test('Page Schema, Content and Publish screens navigate', async ({
     page,
   }) => {
+    await authenticatePage(page);
+
     await page.goto('/dashboard', {
       waitUntil: 'domcontentloaded',
     });
