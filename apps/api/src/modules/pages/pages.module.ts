@@ -1,3 +1,4 @@
+import { ProjectMembersModule } from '../project-members/project-members.module';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -9,6 +10,7 @@ import { PageSchemaController } from './page-schema.controller';
 import { PageSchemaService } from './page-schema.service';
 import { PagesController } from './pages.controller';
 import { PagesService } from './pages.service';
+
 import {
   PageDraft,
   PageDraftSchema,
@@ -29,6 +31,7 @@ import {
 @Module({
   imports: [
     ProjectsModule,
+    ProjectMembersModule,
     SchemaEngineModule,
 
     MongooseModule.forFeature([

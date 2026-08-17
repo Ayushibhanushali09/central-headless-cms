@@ -55,7 +55,7 @@ export class ProjectMembersService {
   async requireRoles(
     projectId: Types.ObjectId,
     userId: Types.ObjectId,
-    allowedRoles: ProjectRole[],
+    allowedRoles: readonly ProjectRole[],
   ): Promise<ProjectMemberDocument> {
     const membership = await this.getActiveMembership(
       projectId,
