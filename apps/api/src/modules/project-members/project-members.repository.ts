@@ -21,6 +21,13 @@ export interface CreateProjectMemberRecord {
   acceptedAt?: Date | null;
 }
 
+export interface UpdateProjectMemberRecord {
+  role?: ProjectRole;
+  status?: ProjectMemberStatus;
+  invitedBy?: Types.ObjectId | null;
+  acceptedAt?: Date | null;
+}
+
 @Injectable()
 export class ProjectMembersRepository {
   constructor(
@@ -32,6 +39,18 @@ export class ProjectMembersRepository {
     input: CreateProjectMemberRecord,
   ): Promise<ProjectMemberDocument> {
     return this.model.create(input);
+  }
+
+  findMembership(
+    projectId: Types.ObjectId,
+    userId: Types.ObjectId,
+  ): Promise<ProjectMemberDocument | null> {
+    return this.model
+      .findOne({
+        projectId,
+        userId,
+      })
+      .exec();
   }
 
   findActiveMembership(
@@ -47,6 +66,21 @@ export class ProjectMembersRepository {
       .exec();
   }
 
+  findAllForProject(
+    projectId: Types.ObjectId,
+  ): Promise<ProjectMemberDocument[]> {
+    return this.model
+      .find({
+        projectId,
+      })
+      .sort({
+        status: 1,
+        role: 1,
+        createdAt: 1,
+      })
+      .exec();
+  }
+
   findActiveProjectsForUser(
     userId: Types.ObjectId,
   ): Promise<ProjectMemberDocument[]> {
@@ -56,6 +90,24 @@ export class ProjectMembersRepository {
         status: ProjectMemberStatus.Active,
       })
       .sort({ updatedAt: -1 })
+      .exec();
+  }
+
+  updateById(
+    membershipId: Types.ObjectId,
+    update: UpdateProjectMemberRecord,
+  ): Promise<ProjectMemberDocument | null> {
+    return this.model
+      .findByIdAndUpdate(
+        membershipId,
+        {
+          $set: update,
+        },
+        {
+          new: true,
+          runValidators: true,
+        },
+      )
       .exec();
   }
 

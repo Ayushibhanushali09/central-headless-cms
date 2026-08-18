@@ -1,22 +1,29 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import {
+  ConfigModule,
+  ConfigService,
+} from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 
+import { envValidationSchema } from '../config/env.validation';
 import { RedisModule } from '../infrastructure/redis/redis.module';
+import { AuthModule } from '../modules/auth/auth.module';
 import { DeliveryModule } from '../modules/delivery/delivery.module';
 import { HealthModule } from '../modules/health/health.module';
 import { PagesModule } from '../modules/pages/pages.module';
+import { ProjectMemberManagementModule } from '../modules/project-members/project-member-management.module';
+import { ProjectMembersModule } from '../modules/project-members/project-members.module';
 import { ProjectsModule } from '../modules/projects/projects.module';
 import { SchemaEngineModule } from '../modules/schema-engine/schema-engine.module';
-import { envValidationSchema } from '../config/env.validation';
-import { AuthModule } from '../modules/auth/auth.module';
-import { ProjectMembersModule } from '../modules/project-members/project-members.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['apps/api/.env', '.env'],
+      envFilePath: [
+        'apps/api/.env',
+        '.env',
+      ],
       validationSchema: envValidationSchema,
       validationOptions: {
         abortEarly: false,
@@ -26,8 +33,12 @@ import { ProjectMembersModule } from '../modules/project-members/project-members
 
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        uri: configService.getOrThrow<string>('MONGODB_URI'),
+      useFactory: (
+        configService: ConfigService,
+      ) => ({
+        uri: configService.getOrThrow<string>(
+          'MONGODB_URI',
+        ),
       }),
     }),
 
@@ -39,6 +50,7 @@ import { ProjectMembersModule } from '../modules/project-members/project-members
     HealthModule,
     AuthModule,
     ProjectMembersModule,
+    ProjectMemberManagementModule,
   ],
 })
 export class AppModule {}

@@ -55,11 +55,27 @@ export class UsersRepository {
       .exec();
   }
 
-    findByInternalId(
+  findByInternalId(
     userId: Types.ObjectId,
   ): Promise<UserDocument | null> {
     return this.userModel
       .findOne({ _id: userId })
+      .exec();
+  }
+
+  findByIds(
+    userIds: readonly Types.ObjectId[],
+  ): Promise<UserDocument[]> {
+    if (userIds.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    return this.userModel
+      .find({
+        _id: {
+          $in: [...userIds],
+        },
+      })
       .exec();
   }
 }
