@@ -24,6 +24,9 @@ import type {
   RegisterInput,
   SaveDraftInput,
   SchemaValidationResult,
+  AddProjectMemberInput,
+  ProjectMember,
+  UpdateProjectMemberInput,
 } from './types';
 
 interface ErrorPayload {
@@ -345,6 +348,57 @@ export function publishPageContent(
     {
       method: 'POST',
       body: JSON.stringify(input),
+    },
+  );
+}
+
+export function getProjectMembers(
+  projectId: string,
+): Promise<ProjectMember[]> {
+  return request<ProjectMember[]>(
+    controlUrl(`/projects/${projectId}/members`),
+  );
+}
+
+export function addProjectMember(
+  projectId: string,
+  input: AddProjectMemberInput,
+): Promise<ProjectMember> {
+  return request<ProjectMember>(
+    controlUrl(`/projects/${projectId}/members`),
+    {
+      method: 'POST',
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function updateProjectMember(
+  projectId: string,
+  targetUserId: string,
+  input: UpdateProjectMemberInput,
+): Promise<ProjectMember> {
+  return request<ProjectMember>(
+    controlUrl(
+      `/projects/${projectId}/members/${targetUserId}`,
+    ),
+    {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    },
+  );
+}
+
+export function disableProjectMember(
+  projectId: string,
+  targetUserId: string,
+): Promise<void> {
+  return request<void>(
+    controlUrl(
+      `/projects/${projectId}/members/${targetUserId}`,
+    ),
+    {
+      method: 'DELETE',
     },
   );
 }

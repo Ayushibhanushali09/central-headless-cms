@@ -1,0 +1,348 @@
+.primaryButton,
+.secondaryButton,
+.dangerButton,
+.errorMessage button {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 15px;
+  border-radius: 9px;
+  cursor: pointer;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.primaryButton {
+  border: 0;
+  background: #4f61e8;
+  color: white;
+  box-shadow: 0 8px 22px rgb(79 97 232 / 20%);
+}
+
+.secondaryButton {
+  border: 1px solid #dce2ec;
+  background: white;
+  color: #344056;
+}
+
+.dangerButton {
+  border: 1px solid #f3c6c9;
+  background: #fff7f7;
+  color: #b43b43;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.errorMessage,
+.successMessage {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 13px 15px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.errorMessage {
+  border: 1px solid #ffc9cc;
+  background: #fff3f3;
+  color: #a93038;
+}
+
+.errorMessage button {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.successMessage {
+  border: 1px solid #bce7cf;
+  background: #effaf4;
+  color: #176b46;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 22px;
+}
+
+.statsGrid article,
+.addPanel,
+.membersPanel,
+.loadingPanel,
+.accessPanel {
+  border: 1px solid #e1e7f0;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 9px 28px rgb(30 46 78 / 5%);
+}
+
+.statsGrid article {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  padding: 19px;
+}
+
+.statsGrid span {
+  color: #7e8a9f;
+  font-size: 11px;
+  text-transform: uppercase;
+}
+
+.statsGrid strong {
+  overflow: hidden;
+  color: #202c43;
+  font-size: 23px;
+  text-overflow: ellipsis;
+}
+
+.addPanel,
+.membersPanel {
+  margin-bottom: 22px;
+  padding: 23px;
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.sectionHeading h2 {
+  margin: 0 0 5px;
+  color: #1d273a;
+  font-size: 18px;
+}
+
+.sectionHeading p {
+  margin: 0;
+  color: #778399;
+  font-size: 13px;
+}
+
+.addForm {
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) minmax(160px, 220px) auto;
+  align-items: end;
+  gap: 14px;
+}
+
+.addForm label {
+  display: grid;
+  gap: 7px;
+  color: #3e4a60;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.addForm input,
+.addForm select,
+.roleSelect {
+  width: 100%;
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid #d9e0eb;
+  border-radius: 9px;
+  outline: none;
+  background: #fbfcfe;
+  color: #253047;
+}
+
+.addForm input:focus,
+.addForm select:focus,
+.roleSelect:focus {
+  border-color: #6878ed;
+  box-shadow: 0 0 0 3px rgb(104 120 237 / 12%);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid #e4e9f1;
+  border-radius: 12px;
+}
+
+.membersTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+.membersTable th,
+.membersTable td {
+  padding: 14px 15px;
+  border-bottom: 1px solid #edf0f5;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.membersTable th {
+  background: #f8f9fc;
+  color: #758197;
+  font-size: 10px;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.membersTable td {
+  color: #344056;
+  font-size: 12px;
+}
+
+.membersTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.userIdentity {
+  min-width: 210px;
+  display: grid;
+  gap: 3px;
+}
+
+.userIdentity strong {
+  color: #263248;
+  font-size: 13px;
+}
+
+.userIdentity small,
+.updatedAt,
+.protectedText {
+  color: #8793a7;
+  font-size: 10px;
+}
+
+.accountWarning {
+  color: #b43b43 !important;
+  font-weight: 750;
+}
+
+.roleBadge,
+.activeBadge,
+.disabledBadge,
+.invitedBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 850;
+  text-transform: uppercase;
+}
+
+.roleBadge {
+  background: #edf0ff;
+  color: #5364df;
+}
+
+.activeBadge {
+  background: #e8f8ef;
+  color: #168457;
+}
+
+.disabledBadge {
+  background: #f1f2f5;
+  color: #6d788b;
+}
+
+.invitedBadge {
+  background: #fff5db;
+  color: #9a6a06;
+}
+
+.roleSelect {
+  min-width: 118px;
+  min-height: 36px;
+  padding-right: 28px;
+}
+
+.rowActions {
+  min-width: 112px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.loadingPanel,
+.accessPanel,
+.emptyState {
+  min-height: 190px;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  padding: 28px;
+  color: #7d899d;
+  text-align: center;
+}
+
+.accessPanel strong {
+  color: #303c52;
+  font-size: 17px;
+}
+
+.accessPanel p {
+  max-width: 520px;
+  margin: 0;
+}
+
+.accessPanel .secondaryButton {
+  margin: 8px auto 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 980px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .addForm {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .addForm .primaryButton {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 620px) {
+  .statsGrid,
+  .addForm {
+    grid-template-columns: 1fr;
+  }
+
+  .addForm .primaryButton {
+    grid-column: auto;
+  }
+
+  .sectionHeading,
+  .errorMessage {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .updatedAt {
+    display: none;
+  }
+}

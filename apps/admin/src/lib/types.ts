@@ -112,3 +112,40 @@ export interface RegisteredUser extends AuthenticatedUser {
   createdAt: string;
   updatedAt: string;
 }
+
+export type ProjectRole =
+  | 'owner'
+  | 'admin'
+  | 'editor'
+  | 'viewer';
+
+export type AssignableProjectRole = Exclude<
+  ProjectRole,
+  'owner'
+>;
+
+export type ProjectMemberStatus =
+  | 'active'
+  | 'invited'
+  | 'disabled';
+
+export interface ProjectMember {
+  userId: string;
+  name: string;
+  email: string;
+  userStatus: 'active' | 'disabled';
+  role: ProjectRole;
+  status: ProjectMemberStatus;
+  acceptedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddProjectMemberInput {
+  email: string;
+  role: AssignableProjectRole;
+}
+
+export interface UpdateProjectMemberInput {
+  role: AssignableProjectRole;
+}

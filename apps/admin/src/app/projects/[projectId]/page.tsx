@@ -121,11 +121,20 @@ export default function ProjectWorkspacePage() {
           >
             ← Projects
           </Link>
+
+          <Link
+              href={`/projects/${projectId}/members`}
+              className={styles.secondaryButton}
+            >
+              Members
+          </Link>
+
           <button
             type="button"
             className={styles.primaryButton}
             onClick={() => setShowCreateForm(true)}
           >
+
             + New Page
           </button>
         </div>
